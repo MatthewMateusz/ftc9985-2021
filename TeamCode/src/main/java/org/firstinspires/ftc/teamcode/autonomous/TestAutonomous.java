@@ -13,7 +13,12 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 public class TestAutonomous extends Automation {
 
     public void instruction() throws InterruptedException {
-        rotate(90, 0.75, 5, true);
+
+        //rotate(90, 0.25, 5, true);
         //driveIMUDistance(100, 0, 0.5, 10, true);
+
+        setDriveMotorSpeed(0.25);
+        sleep(1000);
+        setDriveMotorSpeed(0);
     }
 }

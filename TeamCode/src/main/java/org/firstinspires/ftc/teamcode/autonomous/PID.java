@@ -5,9 +5,9 @@ public class PID {
     private double I;
     private double D;
 
-    private double tolerance;
+    private double tolerance = 0.01;
 
-    private double setpoint;
+    private double setpoint = 0;
 
     private double bias = 0;
 
@@ -16,10 +16,17 @@ public class PID {
     private double prevError = 0;
     private double prevIntegral = 0;
 
+    private int onTargetCount = 0;
+    private int targetCount = 5;
+
     public PID (double p, double i, double d) {
         P = p;
         I = i;
         D = d;
+    }
+
+    public void setTargetCount(int count) {
+        targetCount = count;
     }
 
     public void setDeltaT(double dt) {
@@ -39,7 +46,7 @@ public class PID {
     }
 
     public double doPID(double input) {
-        double error = setpoint - input;
+        double error = input - setpoint;
         double integral = prevIntegral + error * deltaT;
         double derivative = (error - prevError) / deltaT;
 
@@ -51,7 +58,13 @@ public class PID {
     }
 
     public boolean atTarget(double input) {
-        return Math.abs((setpoint - input)/setpoint) < tolerance;
+        if (Math.abs((setpoint - input)/setpoint) < tolerance) {
+            onTargetCount += 1;
+        } else {
+            onTargetCount = 0;
+        }
+
+        return onTargetCount >= targetCount;
     }
 }
 

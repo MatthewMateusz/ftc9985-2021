@@ -50,7 +50,7 @@ public abstract class Automation extends LinearOpMode {
     Orientation reference = new Orientation();
 
     //Drive straight stuff
-    PID controlRotate = new PID(0.01, 0, 0);
+    PID controlRotate = new PID(0.01, 0.000002, 0);
     PID controlDrive = new PID(0.05, 0, 0);
 
 
@@ -59,9 +59,9 @@ public abstract class Automation extends LinearOpMode {
     Hardware hardware = new Hardware();
 
 
+    //Do universal init stuff
     @Override
     public final void runOpMode() throws InterruptedException {
-        //Do universal init stuff
         hardware.init(hardwareMap);
         initIMU();
 
@@ -131,26 +131,20 @@ public abstract class Automation extends LinearOpMode {
             runtime.reset();
             if (angle < 0) {
                 do {
-                    power = Range.clip(controlRotate.doPID(getAngle()), -1.0, 1.0) * power;
-                    hardware.motor_frontLeft.setPower(power);
+                    power = Range.clip(controlRotate.doPID(getAngle()), -Math.abs(power), Math.abs(power));
+                    hardware.motor_frontLeft.setPower(-power);
                     hardware.motor_frontRight.setPower(power);
-                    hardware.motor_rearLeft.setPower(-power);
+                    hardware.motor_rearLeft.setPower(power);
                     hardware.motor_rearRight.setPower(-power);
-                    telemetry.addData("TEst", power);
-                    telemetry.addData("TEst", getAngle());
-                    telemetry.update();
                     sleep((long) controlRotate.getDeltaT());
                 } while (opModeIsActive() && !controlRotate.atTarget(getAngle()) && runtime.seconds() < timeout);
             } else {
                 do {
-                    power = Range.clip(controlRotate.doPID(getAngle()), -1.0, 1.0) * power;
-                    hardware.motor_frontLeft.setPower(-power);
+                    power = Range.clip(controlRotate.doPID(getAngle()), -Math.abs(power), Math.abs(power));
+                    hardware.motor_frontLeft.setPower(power);
                     hardware.motor_frontRight.setPower(-power);
-                    hardware.motor_rearLeft.setPower(power);
+                    hardware.motor_rearLeft.setPower(-power);
                     hardware.motor_rearRight.setPower(power);
-                    telemetry.addData("TEst", power);
-                    telemetry.addData("TEst", getAngle());
-                    telemetry.update();
                     sleep((long) controlRotate.getDeltaT());
                 } while (opModeIsActive() && !controlRotate.atTarget(getAngle()) && runtime.seconds() < timeout);
             }
@@ -233,7 +227,7 @@ public abstract class Automation extends LinearOpMode {
         hardware.motor_rearRight.setMode(mode);
     }
 
-    private void setDriveMotorSpeed(double speed) {
+    void setDriveMotorSpeed(double speed) {
         hardware.motor_frontLeft.setPower(speed);
         hardware.motor_frontRight.setPower(speed);
         hardware.motor_rearLeft.setPower(speed);
