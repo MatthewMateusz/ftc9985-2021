@@ -106,11 +106,11 @@ public abstract class Automation extends LinearOpMode {
     }
 
     private void resetAngle() {
-        reference = hardware.imu.getAngularOrientation(AxesReference.INTRINSIC, rotationalAxes, AngleUnit.DEGREES);
+        reference = hardware.imu.getAngularOrientation(AxesReference.EXTRINSIC, rotationalAxes, AngleUnit.DEGREES);
     }
 
     private double getAngle() {
-        Orientation current = hardware.imu.getAngularOrientation(AxesReference.INTRINSIC, rotationalAxes, AngleUnit.DEGREES);
+        Orientation current = hardware.imu.getAngularOrientation(AxesReference.EXTRINSIC, rotationalAxes, AngleUnit.DEGREES);
         return current.firstAngle -  reference.firstAngle;
     }
 
@@ -132,20 +132,26 @@ public abstract class Automation extends LinearOpMode {
             if (angle < 0) {
                 do {
                     power = Range.clip(controlRotate.doPID(getAngle()), -Math.abs(power), Math.abs(power));
-                    hardware.motor_frontLeft.setPower(-power);
-                    hardware.motor_frontRight.setPower(power);
+                    hardware.motor_frontLeft.setPower(power);
+                    hardware.motor_frontRight.setPower(-power);
                     hardware.motor_rearLeft.setPower(power);
                     hardware.motor_rearRight.setPower(-power);
                     sleep((long) controlRotate.getDeltaT());
+                    telemetry.addData("Current:", getAngle());
+                    telemetry.addData("Taget:", angle);
+                    telemetry.update();
                 } while (opModeIsActive() && !controlRotate.atTarget(getAngle()) && runtime.seconds() < timeout);
             } else {
                 do {
                     power = Range.clip(controlRotate.doPID(getAngle()), -Math.abs(power), Math.abs(power));
-                    hardware.motor_frontLeft.setPower(power);
-                    hardware.motor_frontRight.setPower(-power);
+                    hardware.motor_frontLeft.setPower(-power);
+                    hardware.motor_frontRight.setPower(power);
                     hardware.motor_rearLeft.setPower(-power);
                     hardware.motor_rearRight.setPower(power);
                     sleep((long) controlRotate.getDeltaT());
+                    telemetry.addData("Current:", getAngle());
+                    telemetry.addData("Taget:", angle);
+                    telemetry.update();
                 } while (opModeIsActive() && !controlRotate.atTarget(getAngle()) && runtime.seconds() < timeout);
             }
             setDriveMotorSpeed(0);

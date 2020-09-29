@@ -14,11 +14,11 @@ public class TestAutonomous extends Automation {
 
     public void instruction() throws InterruptedException {
 
-        //rotate(90, 0.25, 5, true);
+        rotate(-90, 0.2, 10, true);
         //driveIMUDistance(100, 0, 0.5, 10, true);
 
-        setDriveMotorSpeed(0.25);
-        sleep(1000);
-        setDriveMotorSpeed(0);
+//        setDriveMotorSpeed(0.25);
+//        sleep(1000);
+//        setDriveMotorSpeed(0);
     }
 }
