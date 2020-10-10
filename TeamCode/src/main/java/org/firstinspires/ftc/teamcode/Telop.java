@@ -13,6 +13,7 @@ import java.util.Locale;
 public class Telop extends OpMode {
     /* Declare OpMode members. */
     Hardware robot       = new Hardware(); // use the class created to define a Pushbot's hardware
+    boolean changed = false;
 
 
     //final double    servoSpeedH   = 0.004;
@@ -75,10 +76,20 @@ public class Telop extends OpMode {
         else
             robot.servo_grabber.setPosition(0);
 
-        if (gamepad2.right_bumper)
-            robot.motor_launch.setPower(1);
-        else if (gamepad2.left_bumper)
-            robot.motor_launch.setPower(0);
+
+        if(gamepad1.right_bumper && !changed) {
+            if(robot.motor_launch.getPower() == 0)
+                robot.motor_launch.setPower(1);
+
+            else
+                robot.motor_launch.setPower(0);
+            changed = true;
+        } else if(!gamepad1.right_bumper) changed = false;
+
+        //if (gamepad2.right_bumper)
+           // robot.motor_launch.setPower(1);
+       // else if (gamepad2.left_bumper)
+           // robot.motor_launch.setPower(0);
 
         if (gamepad2.dpad_up && !robot.pressed(robot.touch_lift_up))
             robot.motor_lift.setPower(.6);
@@ -102,6 +113,7 @@ public class Telop extends OpMode {
         telemetry.addData("RightFront:",rightFrontSpeed);
         telemetry.addData("LeftRear:",leftRearSpeed);
         telemetry.addData("RightRear:",rightRearSpeed);
+        telemetry.addData("Launch Motor:", robot.motor_launch.getPower());
 
         telemetry.update();
 //This code is for mecanum wheels mounted out the sides of robot (team 11283)
