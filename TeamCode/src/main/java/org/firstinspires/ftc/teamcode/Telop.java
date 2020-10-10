@@ -60,11 +60,30 @@ public class Telop extends OpMode {
 //add this vairable.  "CC" stands for controller coefficient and is used with mecanum wheels so the x and y sticks don't add up to more than 1 for a pair of motors (this would be bad since the motor value is limited to 1.  The motors moving in the opposing direction would not be limited
         double CC = .5;
 
-        if (gamepad1.y)
-            robot.servo_left_cont.setPower(.2);
-        else
-            robot.servo_left_cont.setPower(0);
+        if (gamepad1.a)
+            robot.motor_collector.setPower(.7);
+        else if (gamepad1.y)
+            robot.motor_collector.setPower(0);
 
+        if (gamepad2.a)
+            robot.servo_gate.setPosition(.5);
+        else
+            robot.servo_gate.setPosition(0);
+
+        if (gamepad2.b)
+            robot.servo_grabber.setPosition(1);
+        else
+            robot.servo_grabber.setPosition(0);
+
+        if (gamepad2.right_bumper)
+            robot.motor_launch.setPower(1);
+        else if (gamepad2.left_bumper)
+            robot.motor_launch.setPower(0);
+
+        if (gamepad2.dpad_up && !robot.pressed(robot.touch_lift_up))
+            robot.motor_lift.setPower(.6);
+        else if (gamepad2.dpad_down && !robot.pressed(robot.touch_lift_down))
+            robot.motor_lift.setPower(-.6);
 
         // Run wheels in tank mode (note: The joystick goes negative when pushed forwards, so negate it)
 
