@@ -253,5 +253,7 @@ public abstract class Automation extends LinearOpMode {
             hardware.motor_rearRight.setZeroPowerBehavior(ZeroPowerBehavior.FLOAT);
         }
     }
+    //This is Jacob's code, Jacob has never programed in Java before
+    public void shoot() {}
 
 }
