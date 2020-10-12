@@ -17,7 +17,9 @@ public class PID {
     private double prevIntegral = 0;
 
     private int onTargetCount = 0;
-    private int targetCount = 5;
+    private int targetCount = 10;
+
+    private double limit = 1000;
 
     public PID (double p, double i, double d) {
         P = p;
@@ -47,10 +49,19 @@ public class PID {
 
     public double doPID(double input) {
         double error = input - setpoint;
-        double integral = prevIntegral + error * deltaT;
-        double derivative = (error - prevError) / deltaT;
+        double integral = prevIntegral + error * (deltaT * 0.001);
+        double derivative = (error - prevError) / (deltaT * 0.001);
 
         double output = P * error + I * integral + D * derivative + bias;
+/*        while (output > limit) {
+            error = (limit / error) * error;
+            integral = prevIntegral + error * (deltaT * 0.001);
+            derivative = (error - prevError) / (deltaT * 0.001);
+            output = P * error + I * integral + D * derivative + bias;
+        }
+
+        output = P * error + I * integral + D * derivative + bias;*/
+
 
         prevError = error;
         prevIntegral = integral;
@@ -65,6 +76,10 @@ public class PID {
         }
 
         return onTargetCount >= targetCount;
+    }
+
+    public void setOutputLimit(double value) {
+        limit = value;
     }
 }
 

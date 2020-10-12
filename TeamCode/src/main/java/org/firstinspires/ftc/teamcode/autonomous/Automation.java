@@ -14,6 +14,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
+import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
 import org.firstinspires.ftc.teamcode.Hardware;
 
 public abstract class Automation extends LinearOpMode {
@@ -29,6 +30,9 @@ public abstract class Automation extends LinearOpMode {
     static final double inch_in_cm = 2.54;
     static final double one_tile = 24 * inch_in_cm;
     static final long min_delay = 50;
+    static final double mmToCm = 1/10;
+    static final double mmToTile = 24 * inch_in_cm * mmToCm;
+    static final double mmToInch = mmToCm * inch_in_cm;
 
     //Speed variables
     static final double speed_full  = 1;
@@ -50,9 +54,8 @@ public abstract class Automation extends LinearOpMode {
     Orientation reference = new Orientation();
 
     //Drive straight stuff
-    PID controlRotate = new PID(0.01, 0.000002, 0);
+    PID controlRotate = new PID(0.025, 0.01, 0); //p 0.2 | 0.00004, 0
     PID controlDrive = new PID(0.05, 0, 0);
-
 
     private ElapsedTime runtime = new ElapsedTime();
 
@@ -100,7 +103,7 @@ public abstract class Automation extends LinearOpMode {
 
         hardware.imu.initialize(parameters);
 
-        while (!hardware.imu.isGyroCalibrated() && !hardware.imu.isAccelerometerCalibrated()) {
+        while (!isStarted() && !isStopRequested() && !hardware.imu.isSystemCalibrated()) {
             idle();
         }
     }
@@ -131,7 +134,7 @@ public abstract class Automation extends LinearOpMode {
             runtime.reset();
             if (angle < 0) {
                 do {
-                    power = Range.clip(controlRotate.doPID(getAngle()), -Math.abs(power), Math.abs(power));
+                    power = controlRotate.doPID(getAngle());
                     hardware.motor_frontLeft.setPower(power);
                     hardware.motor_frontRight.setPower(-power);
                     hardware.motor_rearLeft.setPower(power);
@@ -143,7 +146,7 @@ public abstract class Automation extends LinearOpMode {
                 } while (opModeIsActive() && !controlRotate.atTarget(getAngle()) && runtime.seconds() < timeout);
             } else {
                 do {
-                    power = Range.clip(controlRotate.doPID(getAngle()), -Math.abs(power), Math.abs(power));
+                    power = controlRotate.doPID(getAngle());
                     hardware.motor_frontLeft.setPower(-power);
                     hardware.motor_frontRight.setPower(power);
                     hardware.motor_rearLeft.setPower(-power);
@@ -161,12 +164,15 @@ public abstract class Automation extends LinearOpMode {
     }
 
 
+
+
     /*
      **
      */
     void driveIMUDistance(double distance, double angle, double power, double timeout, boolean brake) {
         angle = Range.clip(angle, -180, 180);
         power = Range.clip(Math.abs(power), 0.0, 1.0);
+        hardware.imu.startAccelerationIntegration(hardware.imu.getPosition(), new Velocity(), 5);
         Position start = hardware.imu.getPosition();
 
         resetAngle();
@@ -183,24 +189,24 @@ public abstract class Automation extends LinearOpMode {
             double rearRight;
 
             if (angle <= -90.0) {
-                frontLeft  = -power;
-                frontRight = ((-1/45) * angle - 3) * power;
-                rearLeft   = ((-1/45) * angle - 3) * power;
+                frontLeft  = ((1/45) * angle + 3) * power;
+                frontRight = -power;
+                rearLeft   = ((1/45) * angle + 3) * power;
                 rearRight  = -power;
             } else if (-90.0 <= angle && angle <= 0) {
-                frontLeft = ((1/45) * angle + 1) * power;
-                frontRight = -power;
-                rearLeft = -power;
+                frontLeft = power;
+                frontRight = ((1/45) * angle + 1) * power;
+                rearLeft = power;
                 rearRight = ((1/45) * angle + 1) * power;
             } else if (0 <= angle && angle <= 90) {
-                frontLeft = power;
-                frontRight = ((1/45) * angle - 1) * power;
-                rearLeft = ((1/45) * angle - 1) * power;
+                frontLeft = ((-1/45) * angle + 1) * power;
+                frontRight = power;
+                rearLeft = ((-1/45) * angle + 1) * power;
                 rearRight = power;
             } else /*because of clip -> 90 <= angle <= 180*/{
-                frontLeft = ((-1/45) * angle + 3) * power;
-                frontRight = power;
-                rearLeft = power;
+                frontLeft = -power;
+                frontRight = ((-1/45) * angle + 3) * power;
+                rearLeft = -power;
                 rearRight = ((-1/45) * angle + 3) * power;
             }
 
@@ -208,13 +214,18 @@ public abstract class Automation extends LinearOpMode {
             do {
                 double correction = controlDrive.doPID(getAngle());
                 hardware.motor_frontLeft.setPower(frontLeft + correction);
-                hardware.motor_frontRight.setPower(frontRight + correction);
-                hardware.motor_rearLeft.setPower(rearLeft - correction);
+                hardware.motor_frontRight.setPower(frontRight - correction);
+                hardware.motor_rearLeft.setPower(rearLeft + correction);
                 hardware.motor_rearRight.setPower(rearRight - correction);
                 sleep((long) controlDrive.getDeltaT());
+
+                telemetry.addData("Angle Error", getAngle());
+                telemetry.addData("Distance", distance(start, hardware.imu.getPosition()));
+                telemetry.update();
             } while (opModeIsActive() && runtime.seconds() < timeout && distance(start, hardware.imu.getPosition()) <= distance);
         }
         setDriveMotorSpeed(0);
+        hardware.imu.stopAccelerationIntegration();
 
         resetAngle();
         sleep(drive_delay);
