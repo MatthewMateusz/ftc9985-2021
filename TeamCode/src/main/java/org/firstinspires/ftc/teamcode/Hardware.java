@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior;
 import com.qualcomm.robotcore.hardware.DcMotorSimple.Direction;
@@ -31,7 +32,7 @@ public class Hardware {
 
     public DigitalChannel touch_lift_down = null;
     public DigitalChannel touch_lift_up = null;
-
+    public ColorSensor colorSensor_Down = null;
     public void init(HardwareMap hwMap) {
         motor_frontLeft = setupMotor(hwMap, "motor_frontLeft", Direction.FORWARD, ZeroPowerBehavior.BRAKE);
         motor_frontRight = setupMotor(hwMap, "motor_frontRight", Direction.FORWARD, ZeroPowerBehavior.BRAKE);
@@ -49,6 +50,7 @@ public class Hardware {
 
         touch_lift_down = hwMap.get(DigitalChannel.class, "touch_front");
         touch_lift_up = hwMap.get(DigitalChannel.class, "touch_rear");
+        colorSensor_Down = hwMap.get(ColorSensor.class,"color_Down");
 
         imu = hwMap.get(BNO055IMU.class, "imu");
     }

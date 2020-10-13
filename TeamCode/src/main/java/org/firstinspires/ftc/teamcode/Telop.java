@@ -61,10 +61,21 @@ public class Telop extends OpMode {
 //add this vairable.  "CC" stands for controller coefficient and is used with mecanum wheels so the x and y sticks don't add up to more than 1 for a pair of motors (this would be bad since the motor value is limited to 1.  The motors moving in the opposing direction would not be limited
         double CC = .5;
 
-        if (gamepad1.a)
-            robot.motor_collector.setPower(.7);
-        else if (gamepad1.y)
-            robot.motor_collector.setPower(0);
+        //if (gamepad1.a)
+          //  robot.motor_collector.setPower(.7);
+        //else if (gamepad1.y)
+          //  robot.motor_collector.setPower(0);
+
+        if(gamepad1.a && !changed) {
+            if(robot.motor_collector.getPower() == 0)
+                robot.motor_collector.setPower(.7);
+
+            else
+                robot.motor_collector.setPower(0);
+            changed = true;
+        } else if(!gamepad1.a) changed = false;
+
+
 
         if (gamepad2.a)
             robot.servo_gate.setPosition(.5);
@@ -86,10 +97,6 @@ public class Telop extends OpMode {
             changed = true;
         } else if(!gamepad1.right_bumper) changed = false;
 
-        //if (gamepad2.right_bumper)
-           // robot.motor_launch.setPower(1);
-       // else if (gamepad2.left_bumper)
-           // robot.motor_launch.setPower(0);
 
         if (gamepad2.dpad_up && !robot.pressed(robot.touch_lift_up))
             robot.motor_lift.setPower(.6);
@@ -113,7 +120,7 @@ public class Telop extends OpMode {
         telemetry.addData("RightFront:",rightFrontSpeed);
         telemetry.addData("LeftRear:",leftRearSpeed);
         telemetry.addData("RightRear:",rightRearSpeed);
-        telemetry.addData("Launch Motor:", robot.motor_launch.getPower());
+        telemetry.addData("Color Sensor:", robot.colorSensor_Down);
 
         telemetry.update();
 //This code is for mecanum wheels mounted out the sides of robot (team 11283)
