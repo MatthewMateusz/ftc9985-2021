@@ -55,7 +55,7 @@ public abstract class Automation extends LinearOpMode {
 
     //Drive straight stuff
     PID controlRotate = new PID(0.025, 0.01, 0); //p 0.2 | 0.00004, 0
-    PID controlDrive = new PID(0.05, 0, 0);
+    PID controlDrive = new PID(0.025, 0.01, 0);
 
     private ElapsedTime runtime = new ElapsedTime();
 
@@ -140,21 +140,15 @@ public abstract class Automation extends LinearOpMode {
                     hardware.motor_rearLeft.setPower(power);
                     hardware.motor_rearRight.setPower(-power);
                     sleep((long) controlRotate.getDeltaT());
-                    telemetry.addData("Current:", getAngle());
-                    telemetry.addData("Taget:", angle);
-                    telemetry.update();
                 } while (opModeIsActive() && !controlRotate.atTarget(getAngle()) && runtime.seconds() < timeout);
             } else {
                 do {
                     power = controlRotate.doPID(getAngle());
                     hardware.motor_frontLeft.setPower(-power);
-                    hardware.motor_frontRight.setPower(power);
                     hardware.motor_rearLeft.setPower(-power);
+                    hardware.motor_frontRight.setPower(power);
                     hardware.motor_rearRight.setPower(power);
                     sleep((long) controlRotate.getDeltaT());
-                    telemetry.addData("Current:", getAngle());
-                    telemetry.addData("Taget:", angle);
-                    telemetry.update();
                 } while (opModeIsActive() && !controlRotate.atTarget(getAngle()) && runtime.seconds() < timeout);
             }
             setDriveMotorSpeed(0);
@@ -163,23 +157,73 @@ public abstract class Automation extends LinearOpMode {
         }
     }
 
+    /* Custom condition to drive to instead of creating a new function every single time */
+    class IMUDistance implements Condition {
+        Position start;
+        double targetDistance;
+
+        public IMUDistance(double distance) {
+            targetDistance = distance;
+        }
+
+        public void start() {
+            hardware.imu.startAccelerationIntegration(hardware.imu.getPosition(), new Velocity(), 5);
+            start = hardware.imu.getPosition();
+        }
+
+        public boolean atCondition() {
+            return distance(start, hardware.imu.getPosition()) <= targetDistance;
+        }
+
+        public void end() {
+            hardware.imu.stopAccelerationIntegration();
+        }
+
+        private double distance(Position start, Position end) {
+            start.toUnit(DistanceUnit.CM);
+            end.toUnit(DistanceUnit.CM);
+            return Math.sqrt(((end.x - start.x) * (end.x - start.x))+((end.y - start.y) * (end.y - start.y))+((end.z - start.z) * (end.z - start.z)));
+        }
+    }
+
+    class LineStop implements Condition {
+        public LineStop() {
+
+        }
+
+        public void start() {
+
+        }
+
+        public boolean atCondition() {
+            return true;
+        }
+
+        public void end() {
+
+        }
+    }
 
 
 
     /*
-     **
-     */
-    void driveIMUDistance(double distance, double angle, double power, double timeout, boolean brake) {
+    ** Drive until meet a condition
+    */
+    interface Condition {
+        void start();
+        boolean atCondition();
+        void end();
+    }
+    void driveUntilCondition(Condition condition, double angle, double power, double timeout, boolean brake) {
         angle = Range.clip(angle, -180, 180);
         power = Range.clip(Math.abs(power), 0.0, 1.0);
-        hardware.imu.startAccelerationIntegration(hardware.imu.getPosition(), new Velocity(), 5);
-        Position start = hardware.imu.getPosition();
+        condition.start();
 
         resetAngle();
 
         controlDrive.setPoint(0.0);
         controlDrive.setTolerance(0.01);
-        controlDrive.setDeltaT(1);
+        controlDrive.setDeltaT(5);
 
         setBrakeMode(brake);
         if (opModeIsActive()) {
@@ -189,25 +233,45 @@ public abstract class Automation extends LinearOpMode {
             double rearRight;
 
             if (angle <= -90.0) {
-                frontLeft  = ((1/45) * angle + 3) * power;
-                frontRight = -power;
-                rearLeft   = ((1/45) * angle + 3) * power;
-                rearRight  = -power;
-            } else if (-90.0 <= angle && angle <= 0) {
-                frontLeft = power;
-                frontRight = ((1/45) * angle + 1) * power;
-                rearLeft = power;
-                rearRight = ((1/45) * angle + 1) * power;
-            } else if (0 <= angle && angle <= 90) {
-                frontLeft = ((-1/45) * angle + 1) * power;
-                frontRight = power;
-                rearLeft = ((-1/45) * angle + 1) * power;
-                rearRight = power;
-            } else /*because of clip -> 90 <= angle <= 180*/{
                 frontLeft = -power;
-                frontRight = ((-1/45) * angle + 3) * power;
+                frontRight = ((1./45.) * angle + 3.) * power;
+                rearLeft = ((1./45.) * angle + 3.) * power;
+                rearRight = -power;
+
+                /*frontLeft  = ((1./45.) * angle + 3.) * power;
+                frontRight = -power;
+                rearLeft   = ((1./45.) * angle + 3.) * power;
+                rearRight  = -power;*/
+            } else if (angle <= 0) {
+                frontLeft = ((1./45.) * angle + 1.) * power;
+                frontRight = power;
+                rearLeft = power;
+                rearRight = ((1./45.) * angle + 1.) * power;
+
+                /*frontLeft = power;
+                frontRight = ((1./45.) * angle + 1.) * power;
+                rearLeft = power;
+                rearRight = ((1./45.) * angle + 1.) * power;*/
+            } else if (angle <= 90) {
+                frontLeft = power;
+                frontRight = ((-1./45.) * angle + 1) * power;
+                rearLeft =  ((-1./45.) * angle + 1) * power;
+                rearRight = power;
+
+                /*frontLeft = ((-1./45.) * angle + 1.) * power;
+                frontRight = power;
+                rearLeft = ((-1./45.) * angle + 1.) * power;
+                rearRight = power;*/
+            } else /*because of clip angle <= 180*/{
+                frontLeft = ((-1./45.) * angle + 3) * power;
+                frontRight = -power;
                 rearLeft = -power;
-                rearRight = ((-1/45) * angle + 3) * power;
+                rearRight = ((-1./45.) * angle + 3) * power;
+
+                /*frontLeft = -power;
+                frontRight = ((-1./45.) * angle + 3.) * power;
+                rearLeft = -power;
+                rearRight = ((-1./45.) * angle + 3.) * power;*/
             }
 
             runtime.reset();
@@ -218,24 +282,20 @@ public abstract class Automation extends LinearOpMode {
                 hardware.motor_rearLeft.setPower(rearLeft + correction);
                 hardware.motor_rearRight.setPower(rearRight - correction);
                 sleep((long) controlDrive.getDeltaT());
-
-                telemetry.addData("Angle Error", getAngle());
-                telemetry.addData("Distance", distance(start, hardware.imu.getPosition()));
-                telemetry.update();
-            } while (opModeIsActive() && runtime.seconds() < timeout && distance(start, hardware.imu.getPosition()) <= distance);
+            } while (opModeIsActive() && runtime.seconds() < timeout && condition.atCondition());
         }
-        setDriveMotorSpeed(0);
-        hardware.imu.stopAccelerationIntegration();
+        setDriveMotorSpeed(0.0);
+        condition.end();
 
         resetAngle();
         sleep(drive_delay);
     }
 
-    private double distance(Position start, Position end) {
-        start.toUnit(DistanceUnit.CM);
-        end.toUnit(DistanceUnit.CM);
-        return Math.sqrt(((end.x - start.x) * (end.x - start.x))+((end.y - start.y) * (end.y - start.y))+((end.z - start.z) * (end.z - start.z)));
-    }
+
+
+
+
+
 
     private void setDriveMotorMode(RunMode mode) {
         hardware.motor_frontLeft.setMode(mode);
@@ -266,3 +326,85 @@ public abstract class Automation extends LinearOpMode {
     }
 
 }
+
+
+/*
+ **
+ *//*
+    void driveIMUDistance(double distance, double angle, double power, double timeout, boolean brake) {
+        angle = Range.clip(angle, -180, 180);
+        power = Range.clip(Math.abs(power), 0.0, 1.0);
+        hardware.imu.startAccelerationIntegration(hardware.imu.getPosition(), new Velocity(), 5);
+        Position start = hardware.imu.getPosition();
+
+        resetAngle();
+
+        controlDrive.setPoint(0.0);
+        controlDrive.setTolerance(0.01);
+        controlDrive.setDeltaT(5);
+
+        setBrakeMode(brake);
+        if (opModeIsActive()) {
+            double frontLeft;
+            double frontRight;
+            double rearLeft;
+            double rearRight;
+
+            if (angle <= -90.0) {
+                frontLeft = -power;
+                frontRight = ((1./45.) * angle + 3.) * power;
+                rearLeft = ((1./45.) * angle + 3.) * power;
+                rearRight = -power;
+
+                *//*frontLeft  = ((1./45.) * angle + 3.) * power;
+                frontRight = -power;
+                rearLeft   = ((1./45.) * angle + 3.) * power;
+                rearRight  = -power;*//*
+            } else if (angle <= 0) {
+                frontLeft = ((1./45.) * angle + 1.) * power;
+                frontRight = power;
+                rearLeft = power;
+                rearRight = ((1./45.) * angle + 1.) * power;
+
+                *//*frontLeft = power;
+                frontRight = ((1./45.) * angle + 1.) * power;
+                rearLeft = power;
+                rearRight = ((1./45.) * angle + 1.) * power;*//*
+            } else if (angle <= 90) {
+                frontLeft = power;
+                frontRight = ((-1./45.) * angle + 1) * power;
+                rearLeft =  ((-1./45.) * angle + 1) * power;
+                rearRight = power;
+
+                *//*frontLeft = ((-1./45.) * angle + 1.) * power;
+                frontRight = power;
+                rearLeft = ((-1./45.) * angle + 1.) * power;
+                rearRight = power;*//*
+            } else *//*because of clip angle <= 180*//*{
+                frontLeft = ((-1./45.) * angle + 3) * power;
+                frontRight = -power;
+                rearLeft = -power;
+                rearRight = ((-1./45.) * angle + 3) * power;
+
+                *//*frontLeft = -power;
+                frontRight = ((-1./45.) * angle + 3.) * power;
+                rearLeft = -power;
+                rearRight = ((-1./45.) * angle + 3.) * power;*//*
+            }
+
+            runtime.reset();
+            do {
+                double correction = controlDrive.doPID(getAngle());
+                hardware.motor_frontLeft.setPower(frontLeft + correction);
+                hardware.motor_frontRight.setPower(frontRight - correction);
+                hardware.motor_rearLeft.setPower(rearLeft + correction);
+                hardware.motor_rearRight.setPower(rearRight - correction);
+                sleep((long) controlDrive.getDeltaT());
+            } while (opModeIsActive() && runtime.seconds() < timeout && distance(start, hardware.imu.getPosition()) <= distance);
+        }
+        setDriveMotorSpeed(0);
+        hardware.imu.stopAccelerationIntegration();
+
+        resetAngle();
+        sleep(drive_delay);
+    }*/

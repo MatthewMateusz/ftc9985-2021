@@ -15,7 +15,9 @@ public class TestAutonomous extends Automation {
     public void instruction() throws InterruptedException {
 
         //rotate(180, 1, 5, true);
-        driveIMUDistance(2300, 1, 0.2, 10, true);
+        driveUntilCondition(new IMUDistance(500), 0, 0.5, 10, true);
+        driveUntilCondition(new IMUDistance(250), -180, 0.5, 10,  true);
+        driveUntilCondition(new IMUDistance(250), 180, 0.5, 10, true);
 
 //        setDriveMotorSpeed(0.25);
 //        sleep(1000);
