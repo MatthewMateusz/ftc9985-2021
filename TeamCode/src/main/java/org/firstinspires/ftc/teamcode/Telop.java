@@ -12,7 +12,8 @@ import java.util.Locale;
 //@Disabled
 public class Telop extends OpMode {
     /* Declare OpMode members. */
-    Hardware robot       = new Hardware(); // use the class created to define a Pushbot's hardware
+    Hardware robot = new Hardware(); // use the class created to define a Pushbot's hardware
+    boolean changed = false;
 
 
     //final double    servoSpeedH   = 0.004;
@@ -60,11 +61,47 @@ public class Telop extends OpMode {
 //add this vairable.  "CC" stands for controller coefficient and is used with mecanum wheels so the x and y sticks don't add up to more than 1 for a pair of motors (this would be bad since the motor value is limited to 1.  The motors moving in the opposing direction would not be limited
         double CC = .5;
 
-        if (gamepad1.y)
-            robot.servo_left_cont.setPower(.2);
-        else
-            robot.servo_left_cont.setPower(0);
+        //if (gamepad1.a)
+          //  robot.motor_collector.setPower(.7);
+        //else if (gamepad1.y)
+          //  robot.motor_collector.setPower(0);
 
+        if(gamepad1.a && !changed) {
+            if(robot.motor_collector.getPower() == 0)
+                robot.motor_collector.setPower(.7);
+
+            else
+                robot.motor_collector.setPower(0);
+            changed = true;
+        } else if(!gamepad1.a) changed = false;
+
+
+
+        if (gamepad2.a)
+            robot.servo_gate.setPosition(.5);
+        else
+            robot.servo_gate.setPosition(0);
+
+        if (gamepad2.b)
+            robot.servo_grabber.setPosition(1);
+        else
+            robot.servo_grabber.setPosition(0);
+
+
+        if(gamepad1.right_bumper && !changed) {
+            if(robot.motor_launch.getPower() == 0)
+                robot.motor_launch.setPower(1);
+
+            else
+                robot.motor_launch.setPower(0);
+            changed = true;
+        } else if(!gamepad1.right_bumper) changed = false;
+
+
+        if (gamepad2.dpad_up && !robot.pressed(robot.touch_lift_up))
+            robot.motor_lift.setPower(.6);
+        else if (gamepad2.dpad_down && !robot.pressed(robot.touch_lift_down))
+            robot.motor_lift.setPower(-.6);
 
         // Run wheels in tank mode (note: The joystick goes negative when pushed forwards, so negate it)
 
@@ -83,7 +120,9 @@ public class Telop extends OpMode {
         telemetry.addData("RightFront:",rightFrontSpeed);
         telemetry.addData("LeftRear:",leftRearSpeed);
         telemetry.addData("RightRear:",rightRearSpeed);
-
+        telemetry.addData("Color Sensor B:", robot.colorSensor_Down.blue());
+        telemetry.addData("Color Sensor R:", robot.colorSensor_Down.red());
+        telemetry.addData("Color Sensor G:", robot.colorSensor_Down.green());
         telemetry.update();
 //This code is for mecanum wheels mounted out the sides of robot (team 11283)
 
