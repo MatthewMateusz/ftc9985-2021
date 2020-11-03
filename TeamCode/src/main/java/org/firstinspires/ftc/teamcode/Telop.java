@@ -12,7 +12,7 @@ import java.util.Locale;
 //@Disabled
 public class Telop extends OpMode {
     /* Declare OpMode members. */
-    Hardware robot       = new Hardware(); // use the class created to define a Pushbot's hardware
+    Hardware robot = new Hardware(); // use the class created to define a Pushbot's hardware
     boolean changed = false;
 
 
@@ -120,8 +120,9 @@ public class Telop extends OpMode {
         telemetry.addData("RightFront:",rightFrontSpeed);
         telemetry.addData("LeftRear:",leftRearSpeed);
         telemetry.addData("RightRear:",rightRearSpeed);
-        telemetry.addData("Color Sensor:", robot.colorSensor_Down);
-
+        telemetry.addData("Color Sensor B:", robot.colorSensor_Down.blue());
+        telemetry.addData("Color Sensor R:", robot.colorSensor_Down.red());
+        telemetry.addData("Color Sensor G:", robot.colorSensor_Down.green());
         telemetry.update();
 //This code is for mecanum wheels mounted out the sides of robot (team 11283)
 
