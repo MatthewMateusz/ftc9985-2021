@@ -28,11 +28,11 @@ public abstract class Automation extends LinearOpMode {
 
 
     static final double inch_in_cm = 2.54;
-    static final double one_tile = 24 * inch_in_cm;
+    static final double one_tile_i = 24 * inch_in_cm;
     static final long min_delay = 50;
-    static final double mmToCm = 1/10;
-    static final double mmToTile = 24 * inch_in_cm * mmToCm;
-    static final double mmToInch = mmToCm * inch_in_cm;
+    static final double cm_to_mm = 10;
+    static final double one_tile = 24 * inch_in_cm * cm_to_mm;
+    static final double mmToInch = cm_to_mm * inch_in_cm;
 
     //Speed variables
     static final double speed_full  = 1;
@@ -55,7 +55,7 @@ public abstract class Automation extends LinearOpMode {
 
     //Drive straight stuff
     PID controlRotate = new PID(0.025, 0.01, 0); //p 0.2 | 0.00004, 0
-    PID controlDrive = new PID(0.025, 0.01, 0);
+    PID controlDrive = new PID(0.05, 0.01, 0);
 
     private ElapsedTime runtime = new ElapsedTime();
 
@@ -186,9 +186,22 @@ public abstract class Automation extends LinearOpMode {
         }
     }
 
-    class LineStop implements Condition {
-        public LineStop() {
+    enum LineColor {
+        RED,
+        BLUE,
+        WHITE
+    }
 
+    class LineDrive implements Condition {
+        LineColor target;
+        int startRed;
+        int startBlue;
+        int startGreen;
+
+        public LineDrive(LineColor lineColor) {
+            startRed = hardware.colorSensor_Down.red();
+            startGreen = hardware.colorSensor_Down.green();
+            startBlue = hardware.colorSensor_Down.blue();
         }
 
         public void start() {
@@ -196,7 +209,20 @@ public abstract class Automation extends LinearOpMode {
         }
 
         public boolean atCondition() {
-            return true;
+
+            switch(target) {
+                case RED:
+                    return true;
+
+                case BLUE:
+                    return true;
+
+                case WHITE:
+                    return true;
+
+                default:
+                    return true;
+            }
         }
 
         public void end() {
