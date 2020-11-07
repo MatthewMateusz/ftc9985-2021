@@ -56,6 +56,7 @@ public abstract class Automation extends LinearOpMode {
     //Drive straight stuff
     PID controlRotate = new PID(0.025, 0.01, 0); //p 0.2 | 0.00004, 0
     PID controlDrive = new PID(0.05, 0.01, 0);
+    PID controlDistance = new PID(0.05, 0, 0);
 
     private ElapsedTime runtime = new ElapsedTime();
 
@@ -161,6 +162,7 @@ public abstract class Automation extends LinearOpMode {
     class IMUDistance implements Condition {
         Position start;
         double targetDistance;
+        double tolerance = 0.02;
 
         public IMUDistance(double distance) {
             targetDistance = distance;
@@ -169,10 +171,17 @@ public abstract class Automation extends LinearOpMode {
         public void start() {
             hardware.imu.startAccelerationIntegration(hardware.imu.getPosition(), new Velocity(), 5);
             start = hardware.imu.getPosition();
+
+            controlDistance.setPoint(targetDistance);
+            controlDistance.setDeltaT(5);
         }
 
         public boolean atCondition() {
-            return distance(start, hardware.imu.getPosition()) <= targetDistance;
+            return (distance(start, hardware.imu.getPosition()) - targetDistance)/1000 <= tolerance;
+        }
+
+        public double correction() {
+            return controlDistance.doPID(distance(start, hardware.imu.getPosition()));
         }
 
         public void end() {
@@ -194,14 +203,14 @@ public abstract class Automation extends LinearOpMode {
 
     class LineDrive implements Condition {
         LineColor target;
-        int startRed;
-        int startBlue;
-        int startGreen;
+        static final int red = 400;
+        static final int green = 400;
+        static final int blue = 400;
+        static final float ratio = 1.2f;
+
 
         public LineDrive(LineColor lineColor) {
-            startRed = hardware.colorSensor_Down.red();
-            startGreen = hardware.colorSensor_Down.green();
-            startBlue = hardware.colorSensor_Down.blue();
+            target = lineColor;
         }
 
         public void start() {
@@ -209,20 +218,29 @@ public abstract class Automation extends LinearOpMode {
         }
 
         public boolean atCondition() {
-
             switch(target) {
                 case RED:
-                    return true;
+                    return hardware.colorSensor_Down.red() >= red &&
+                            ( (float) hardware.colorSensor_Down.red() / (float) hardware.colorSensor_Down.green()) > ratio &&
+                            ( (float) hardware.colorSensor_Down.red() / (float) hardware.colorSensor_Down.blue()) > ratio;
 
                 case BLUE:
-                    return true;
+                    return hardware.colorSensor_Down.blue() >= blue &&
+                            ( (float) hardware.colorSensor_Down.blue() / (float) hardware.colorSensor_Down.red()) > ratio &&
+                            ( (float) hardware.colorSensor_Down.blue() / (float) hardware.colorSensor_Down.green()) > ratio;
 
                 case WHITE:
-                    return true;
+                    return hardware.colorSensor_Down.red() >= red &&
+                            hardware.colorSensor_Down.green() >= green &&
+                            hardware.colorSensor_Down.blue() >= blue;
 
                 default:
                     return true;
             }
+        }
+
+        public double correction() {
+            return 0;
         }
 
         public void end() {
@@ -239,6 +257,7 @@ public abstract class Automation extends LinearOpMode {
         void start();
         boolean atCondition();
         void end();
+        double correction();
     }
     void driveUntilCondition(Condition condition, double angle, double power, double timeout, boolean brake) {
         angle = Range.clip(angle, -180, 180);
@@ -303,10 +322,10 @@ public abstract class Automation extends LinearOpMode {
             runtime.reset();
             do {
                 double correction = controlDrive.doPID(getAngle());
-                hardware.motor_frontLeft.setPower(frontLeft + correction);
-                hardware.motor_frontRight.setPower(frontRight - correction);
-                hardware.motor_rearLeft.setPower(rearLeft + correction);
-                hardware.motor_rearRight.setPower(rearRight - correction);
+                hardware.motor_frontLeft.setPower(frontLeft + correction + condition.correction());
+                hardware.motor_frontRight.setPower(frontRight - correction + condition.correction());
+                hardware.motor_rearLeft.setPower(rearLeft + correction + condition.correction());
+                hardware.motor_rearRight.setPower(rearRight - correction + condition.correction());
                 sleep((long) controlDrive.getDeltaT());
             } while (opModeIsActive() && runtime.seconds() < timeout && condition.atCondition());
         }
@@ -316,11 +335,6 @@ public abstract class Automation extends LinearOpMode {
         resetAngle();
         sleep(drive_delay);
     }
-
-
-
-
-
 
 
     private void setDriveMotorMode(RunMode mode) {

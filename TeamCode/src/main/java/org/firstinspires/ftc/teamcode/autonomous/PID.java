@@ -19,12 +19,16 @@ public class PID {
     private int onTargetCount = 0;
     private int targetCount = 10;
 
-    private double limit = 1000;
+    private double limit = 1;
 
     public PID (double p, double i, double d) {
         P = p;
         I = i;
         D = d;
+    }
+
+    public void setLimit(double newLimit) {
+        limit = newLimit;
     }
 
     public void setTargetCount(int count) {
@@ -62,10 +66,18 @@ public class PID {
 
         output = P * error + I * integral + D * derivative + bias;*/
 
-
         prevError = error;
-        prevIntegral = integral;
-        return output;
+        if (output > limit) {
+
+            prevIntegral = 0;
+            return limit;
+        } else  if (output < -limit){
+            prevIntegral = 0;
+            return -limit;
+        } else {
+            prevIntegral = integral;
+            return output;
+        }
     }
 
     public boolean atTarget(double input) {
