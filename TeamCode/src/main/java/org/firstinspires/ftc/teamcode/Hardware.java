@@ -23,7 +23,7 @@ public class Hardware {
     public DcMotor motor_conveyor = null;
 
     //Servos
-    public CRServo servo_left_cont = null;
+    public CRServo servo_Advancer = null;
     public Servo servo_grabber = null;
     public Servo servo_gate = null;
     public Servo grabber_elbow = null;
@@ -43,13 +43,13 @@ public class Hardware {
         motor_launch = setupMotor(hwMap, "motor_Launch", Direction.REVERSE, ZeroPowerBehavior.BRAKE);
         motor_conveyor = setupMotor(hwMap, "motor_Conveyor", Direction.REVERSE, ZeroPowerBehavior.BRAKE);
 
-        servo_left_cont = setupContinuousServo(hwMap, "servo_left_cont", -0.5);
+        servo_Advancer = setupContinuousServo(hwMap, "servo_Advancer", 0);
         grabber_elbow = setupServo(hwMap,"servo_grabberElbow",.5);
         servo_gate= setupServo(hwMap,"servo_Gate",.5);
         servo_grabber = setupServo(hwMap,"servo_Grabber",.5);
 
-        touch_lift_down = hwMap.get(DigitalChannel.class, "touch_front");
-        touch_lift_up = hwMap.get(DigitalChannel.class, "touch_rear");
+        touch_lift_down = hwMap.get(DigitalChannel.class, "touch_lift_down");
+        touch_lift_up = hwMap.get(DigitalChannel.class, "touch_lift_up");
         colorSensor_Down = hwMap.get(ColorSensor.class,"color_Down");
 
         imu = hwMap.get(BNO055IMU.class, "imu");
