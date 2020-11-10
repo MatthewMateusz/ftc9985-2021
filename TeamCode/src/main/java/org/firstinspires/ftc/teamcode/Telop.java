@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
+import android.graphics.Color;
+
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.Range;
@@ -13,7 +15,8 @@ import java.util.Locale;
 public class Telop extends OpMode {
     /* Declare OpMode members. */
     Hardware robot = new Hardware(); // use the class created to define a Pushbot's hardware
-    boolean changed = false;
+    boolean changed = false; //Luancher
+    boolean change = false; //motor collector
 
 
     //final double    servoSpeedH   = 0.004;
@@ -65,15 +68,24 @@ public class Telop extends OpMode {
           //  robot.motor_collector.setPower(.7);
         //else if (gamepad1.y)
           //  robot.motor_collector.setPower(0);
-
-        if(gamepad1.a && !changed) {
+        //Collector
+        if(gamepad1.a && !change) {
             if(robot.motor_collector.getPower() == 0)
-                robot.motor_collector.setPower(.7);
-
+                robot.motor_collector.setPower(.9);
             else
                 robot.motor_collector.setPower(0);
-            changed = true;
-        } else if(!gamepad1.a) changed = false;
+            change = true;
+        } else if(!gamepad1.a) change = false;
+
+        if (Math.abs(robot.motor_collector.getPower()) > 0)
+            robot.motor_conveyor.setPower(1);
+        else
+            robot.motor_conveyor.setPower(0);
+
+        if (!(Math.abs(robot.motor_collector.getPower()) > 0))
+            robot.servo_Advancer.setPower(0);
+        else
+            robot.servo_Advancer.setPower(.5);
 
 
 
@@ -97,6 +109,15 @@ public class Telop extends OpMode {
             changed = true;
         } else if(!gamepad1.right_bumper) changed = false;
 
+        if(gamepad1.left_bumper && !changed) {
+            if(robot.motor_launch.getPower() == 0)
+                robot.motor_launch.setPower(.62);
+
+            else
+                robot.motor_launch.setPower(0);
+            changed = true;
+        } else if(!gamepad1.left_bumper) changed = false;
+
 
         if (gamepad2.dpad_up && !robot.pressed(robot.touch_lift_up))
             robot.motor_lift.setPower(.6);
@@ -109,12 +130,26 @@ public class Telop extends OpMode {
         leftFrontSpeed = (gamepad1.left_stick_y*(CC) - gamepad1.left_stick_x*(CC) + gamepad1.left_trigger*(CC) - gamepad1.right_trigger*(CC));
         rightFrontSpeed = (-gamepad1.left_stick_y*(CC) - gamepad1.left_stick_x*(CC) + gamepad1.left_trigger*(CC) - gamepad1.right_trigger*(CC));
         leftRearSpeed = (gamepad1.left_stick_y*(CC) + gamepad1.left_stick_x*(CC) + gamepad1.left_trigger*(CC) - gamepad1.right_trigger*(CC));
-        rightRearSpeed = (-gamepad1.left_stick_y*(CC) +gamepad1.left_stick_x*(CC) + gamepad1.left_trigger*(CC) - gamepad1.right_trigger*(CC));
+        rightRearSpeed = (-gamepad1.left_stick_y*(CC) + gamepad1.left_stick_x*(CC) + gamepad1.left_trigger*(CC) - gamepad1.right_trigger*(CC));
 
         robot.motor_frontLeft.setPower(leftFrontSpeed);
         robot.motor_frontRight.setPower(rightFrontSpeed);
         robot.motor_rearLeft.setPower(leftRearSpeed);
         robot.motor_rearRight.setPower(rightRearSpeed);
+
+        float hsvValues_RF[] = {0F, 0F, 0F};
+        float hsvValues_LF[] = {0F, 0F, 0F};
+//
+//        // values is a reference to the hsvValues array.
+        final float values_RF[] = hsvValues_RF;
+        final float values_LF[] = hsvValues_LF;
+//         sometimes it helps to multiply the raw RGB values with a scale factor
+//         to amplify/attentuate the measured values.
+        final double SCALE_FACTOR = 255;
+        Color.RGBToHSV((int) (robot.colorSensor_Down.red() * SCALE_FACTOR),
+                (int) (robot.colorSensor_Down.green() * SCALE_FACTOR),
+                (int) (robot.colorSensor_Down.blue() * SCALE_FACTOR),hsvValues_RF);
+
 
         telemetry.addData("LeftFront:",leftFrontSpeed);
         telemetry.addData("RightFront:",rightFrontSpeed);
