@@ -159,13 +159,15 @@ public abstract class Automation extends LinearOpMode {
     }
 
     /* Custom condition to drive to instead of creating a new function every single time */
-    class IMUDistance implements Condition {
+    class IMUDistance extends Condition {
         Position start;
         double targetDistance;
         double tolerance = 0.02;
 
-        public IMUDistance(double distance) {
+        public IMUDistance(double distance, double power) {
             targetDistance = distance;
+            controlDistance.setLimit(Range.clip(Math.abs(power), 0.0, 1.0));
+            this.power = power;
         }
 
         public void start() {
@@ -201,7 +203,7 @@ public abstract class Automation extends LinearOpMode {
         WHITE
     }
 
-    class LineDrive implements Condition {
+    class LineDrive extends Condition {
         LineColor target;
         static final int red = 400;
         static final int green = 400;
@@ -209,8 +211,9 @@ public abstract class Automation extends LinearOpMode {
         static final float ratio = 1.2f;
 
 
-        public LineDrive(LineColor lineColor) {
+        public LineDrive(LineColor lineColor, double setPower) {
             target = lineColor;
+            power =setPower;
         }
 
         public void start() {
@@ -253,15 +256,19 @@ public abstract class Automation extends LinearOpMode {
     /*
     ** Drive until meet a condition
     */
-    interface Condition {
-        void start();
-        boolean atCondition();
-        void end();
-        double correction();
+    abstract class Condition {
+        double power = 0;
+        abstract void start();
+        abstract boolean atCondition();
+        abstract void end();
+        abstract double correction();
+        public double getPower() {
+            return power;
+        }
     }
-    void driveUntilCondition(Condition condition, double angle, double power, double timeout, boolean brake) {
+    void driveUntilCondition(Condition condition, double angle, double timeout, boolean brake) {
         angle = Range.clip(angle, -180, 180);
-        power = Range.clip(Math.abs(power), 0.0, 1.0);
+        double power = Range.clip(Math.abs(condition.getPower()), 0.0, 1.0);
         condition.start();
 
         resetAngle();
