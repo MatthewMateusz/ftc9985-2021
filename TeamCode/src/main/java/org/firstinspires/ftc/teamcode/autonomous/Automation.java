@@ -20,6 +20,10 @@ import org.firstinspires.ftc.teamcode.Hardware;
 public abstract class Automation extends LinearOpMode {
 
 
+    //Gate constants
+    static final double gate_open = 0;
+    static final double gate_close = 0;
+
     //NeveRest 40 Gearbox
     private static final int encoder_tick_per_revolution = 280;
 
@@ -93,7 +97,7 @@ public abstract class Automation extends LinearOpMode {
      ** It also holds init code that is not required for each autonomous for example:
      ** Vuforia or neural networks
      */
-    public void auto_init() {};
+    public void auto_init() {}
 
     private void initIMU() {
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
@@ -123,7 +127,8 @@ public abstract class Automation extends LinearOpMode {
     /*
      **
      */
-    void rotate(double angle, double power, double timeout, boolean brake) {
+    void rotate(double angle, double timeout, boolean brake) {
+        double power = 0;
         resetAngle();
 
         controlRotate.setPoint(angle);
@@ -164,13 +169,12 @@ public abstract class Automation extends LinearOpMode {
         double targetDistance;
         double tolerance = 0.02;
 
-        public IMUDistance(double distance, double power) {
+        public IMUDistance(double distance) {
             targetDistance = distance;
-            controlDistance.setLimit(Range.clip(Math.abs(power), 0.0, 1.0));
-            this.power = power;
         }
 
         public void start() {
+            controlDistance.setLimit(Range.clip(Math.abs(power), 0.0, 1.0));
             hardware.imu.startAccelerationIntegration(hardware.imu.getPosition(), new Velocity(), 5);
             start = hardware.imu.getPosition();
 
@@ -211,9 +215,8 @@ public abstract class Automation extends LinearOpMode {
         static final float ratio = 1.2f;
 
 
-        public LineDrive(LineColor lineColor, double setPower) {
+        public LineDrive(LineColor lineColor) {
             target = lineColor;
-            power =setPower;
         }
 
         public void start() {
@@ -262,13 +265,14 @@ public abstract class Automation extends LinearOpMode {
         abstract boolean atCondition();
         abstract void end();
         abstract double correction();
-        public double getPower() {
-            return power;
+        public void setPower(double setPower) {
+            power = setPower;
         }
     }
-    void driveUntilCondition(Condition condition, double angle, double timeout, boolean brake) {
+    void driveUntilCondition(Condition condition, double power, double angle, double timeout, boolean brake) {
         angle = Range.clip(angle, -180, 180);
-        double power = Range.clip(Math.abs(condition.getPower()), 0.0, 1.0);
+        power = Range.clip(Math.abs(power), 0.0, 1.0);
+        condition.setPower(power);
         condition.start();
 
         resetAngle();
@@ -348,7 +352,15 @@ public abstract class Automation extends LinearOpMode {
         CLOSE
     }
     void setGate(GatePosition position) {
+        switch (position) {
+            case OPEN:
+                hardware.servo_gate.setPosition(gate_open);
+                break;
 
+            case CLOSE:
+                hardware.servo_gate.setPosition(gate_close);
+                break;
+        }
     }
 
 
