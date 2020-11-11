@@ -343,6 +343,14 @@ public abstract class Automation extends LinearOpMode {
         sleep(drive_delay);
     }
 
+    enum GatePosition {
+        OPEN,
+        CLOSE
+    }
+    void setGate(GatePosition position) {
+
+    }
+
 
     private void setDriveMotorMode(RunMode mode) {
         hardware.motor_frontLeft.setMode(mode);
