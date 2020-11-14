@@ -62,7 +62,7 @@ public class Telop extends OpMode {
         double rightRearSpeed;
 
 //add this vairable.  "CC" stands for controller coefficient and is used with mecanum wheels so the x and y sticks don't add up to more than 1 for a pair of motors (this would be bad since the motor value is limited to 1.  The motors moving in the opposing direction would not be limited
-        double CC = .5;
+        double CC = .6;
 
         //if (gamepad1.a)
           //  robot.motor_collector.setPower(.7);
@@ -89,10 +89,15 @@ public class Telop extends OpMode {
 
 
 
-        if (gamepad2.a)
-            robot.servo_gate.setPosition(.5);
-        else
-            robot.servo_gate.setPosition(0);
+
+
+        if(gamepad2.a && !change) {
+            if(robot.servo_gate.getPosition() == 1)
+                robot.servo_gate.setPosition(.5);
+            else
+                robot.servo_gate.setPosition(1);
+            change = true;
+        } else if(!gamepad2.a) change = false;
 
         if (gamepad2.b)
             robot.servo_grabber.setPosition(1);
@@ -111,7 +116,7 @@ public class Telop extends OpMode {
 
         if(gamepad1.left_bumper && !changed) {
             if(robot.motor_launch.getPower() == 0)
-                robot.motor_launch.setPower(.62);
+                robot.motor_launch.setPower(.60);
 
             else
                 robot.motor_launch.setPower(0);
@@ -131,6 +136,7 @@ public class Telop extends OpMode {
         rightFrontSpeed = (-gamepad1.left_stick_y*(CC) - gamepad1.left_stick_x*(CC) + gamepad1.left_trigger*(CC) - gamepad1.right_trigger*(CC));
         leftRearSpeed = (gamepad1.left_stick_y*(CC) + gamepad1.left_stick_x*(CC) + gamepad1.left_trigger*(CC) - gamepad1.right_trigger*(CC));
         rightRearSpeed = (-gamepad1.left_stick_y*(CC) + gamepad1.left_stick_x*(CC) + gamepad1.left_trigger*(CC) - gamepad1.right_trigger*(CC));
+
 
         robot.motor_frontLeft.setPower(leftFrontSpeed);
         robot.motor_frontRight.setPower(rightFrontSpeed);
