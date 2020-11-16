@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
+import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
@@ -18,7 +19,12 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
+import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
+import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
 import org.firstinspires.ftc.teamcode.Hardware;
+import org.firstinspires.ftc.teamcode.Secure;
+
+import java.util.List;
 
 public abstract class Automation extends LinearOpMode {
 
@@ -76,7 +82,11 @@ public abstract class Automation extends LinearOpMode {
     //Tensor / Vuforia
     private static final VuforiaLocalizer.CameraDirection CAMERA_CHOICE = VuforiaLocalizer.CameraDirection.BACK;
     private static final String TFOD_MODEL_ASSET = "UltimateGoal.tflite";
-    private static final String RING = "";
+    private static final String L1E = "Quad";
+    private static final String L2E = "Single";
+    private static final float min_confidence = 0.8f;
+    VuforiaLocalizer vuforia;
+    TFObjectDetector tfod;
 
     Hardware hardware = new Hardware();
 
@@ -86,6 +96,9 @@ public abstract class Automation extends LinearOpMode {
     public final void runOpMode() throws InterruptedException {
         hardware.init(hardwareMap);
         initIMU();
+
+        initVuforia();
+        initTfod();
 
         //specific autonomous init code
         auto_init();
@@ -127,8 +140,19 @@ public abstract class Automation extends LinearOpMode {
         }
     }
 
-    private void innitVuforia () {
+    private void initVuforia () {
+        VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters();
+        parameters.vuforiaLicenseKey = Secure.VUFORIA_KEY;
+        parameters.cameraName = hardware.viewer;
+        vuforia = ClassFactory.getInstance().createVuforia(parameters);
+    }
 
+    private void initTfod () {
+        int tfodMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("tfodMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+        TFObjectDetector.Parameters tfodParameters = new TFObjectDetector.Parameters(tfodMonitorViewId);
+        tfodParameters.minResultConfidence = min_confidence;
+        tfod = ClassFactory.getInstance().createTFObjectDetector(tfodParameters, vuforia);
+        tfod.loadModelFromAsset(TFOD_MODEL_ASSET, L1E, L2E);
     }
 
     private void resetAngle() {
@@ -138,6 +162,26 @@ public abstract class Automation extends LinearOpMode {
     private double getAngle() {
         Orientation current = hardware.imu.getAngularOrientation(AxesReference.EXTRINSIC, rotationalAxes, AngleUnit.DEGREES);
         return current.firstAngle -  reference.firstAngle;
+    }
+
+
+    void ObjectFinderTest(double timeout) {
+        if (opModeIsActive()) {
+            tfod.activate();
+            runtime.reset();
+            while (opModeIsActive() && runtime.seconds() < timeout) {
+                List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
+                if (updatedRecognitions != null) {
+                    telemetry.addData("Obj #", updatedRecognitions.size());
+
+                    for (int i = 0; i < updatedRecognitions.size(); i++) {
+                        telemetry.addData(String.format("label (%d)", i), updatedRecognitions.get(i).getLabel());
+                    }
+                    telemetry.update();
+                }
+            }
+            tfod.deactivate();
+        }
     }
 
 
