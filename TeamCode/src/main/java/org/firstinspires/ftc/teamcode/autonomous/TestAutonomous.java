@@ -1,22 +1,24 @@
 package org.firstinspires.ftc.teamcode.autonomous;
 
-import android.graphics.drawable.GradientDrawable;
-
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
-import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 @Autonomous(name="Test Autonomous", group="INDEV")
 public class TestAutonomous extends Automation {
 
     public void instruction() throws InterruptedException {
 
-        //rotate(180, 1, 5, true);
+
+        driveUntilCondition(new IMUDistance(609.6), 0.5, 0, 10, true);
+
+
+
+        /*rotate(90,0.5, 5, true);*/
+        /*setConveyor(ConveyorState.ON);
+        sleep(1500);
+        setConveyor(ConveyorState.OFF);
+        sleep(1500);
         driveUntilCondition(new IMUDistance(609.6), 0.5, 0 , 10, true);
-        sleep(2000);
+        sleep(2000);*/
         /*driveUntilCondition(new IMUDistance(609.6), 0.5, 90, 10,  true);*/
         /*driveUntilCondition(new LineDrive(LineColor.RED), 0.5, 0, 10, true);*/
 

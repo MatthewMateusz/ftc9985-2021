@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.autonomous;
 
+import android.graphics.Camera;
+
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -15,14 +17,21 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.teamcode.Hardware;
 
 public abstract class Automation extends LinearOpMode {
 
 
     //Gate constants
-    static final double gate_open = 0;
-    static final double gate_close = 0;
+    static final double gate_open = 0.5;
+    static final double gate_close = 1;
+
+    //Yeeter constants
+    static final double yeet_full = 1;
+
+    //Convey constants
+    static final double conveyor_on = 1;
 
     //NeveRest 40 Gearbox
     private static final int encoder_tick_per_revolution = 280;
@@ -58,11 +67,16 @@ public abstract class Automation extends LinearOpMode {
     Orientation reference = new Orientation();
 
     //Drive straight stuff
-    PID controlRotate = new PID(0.025, 0.01, 0); //p 0.2 | 0.00004, 0
+    PID controlRotate = new PID(0.025, 0.04, 0); //p 0.2 | 0.00004, 0
     PID controlDrive = new PID(0.05, 0.01, 0);
-    PID controlDistance = new PID(0.05, 0, 0);
+    PID controlDistance = new PID(0.1, 0, 0);
 
     private ElapsedTime runtime = new ElapsedTime();
+
+    //Tensor / Vuforia
+    private static final VuforiaLocalizer.CameraDirection CAMERA_CHOICE = VuforiaLocalizer.CameraDirection.BACK;
+    private static final String TFOD_MODEL_ASSET = "UltimateGoal.tflite";
+    private static final String RING = "";
 
     Hardware hardware = new Hardware();
 
@@ -113,6 +127,10 @@ public abstract class Automation extends LinearOpMode {
         }
     }
 
+    private void innitVuforia () {
+
+    }
+
     private void resetAngle() {
         reference = hardware.imu.getAngularOrientation(AxesReference.EXTRINSIC, rotationalAxes, AngleUnit.DEGREES);
     }
@@ -127,12 +145,12 @@ public abstract class Automation extends LinearOpMode {
     /*
      **
      */
-    void rotate(double angle, double timeout, boolean brake) {
-        double power = 0;
+    void rotate(double angle, double power, double timeout, boolean brake) {
         resetAngle();
 
         controlRotate.setPoint(angle);
-        controlRotate.setTolerance(0.01);
+        controlRotate.setTolerance(1);
+        controlRotate.setOutputLimit(power);
         controlRotate.setDeltaT(5);
 
         setBrakeMode(brake);
@@ -146,6 +164,10 @@ public abstract class Automation extends LinearOpMode {
                     hardware.motor_rearLeft.setPower(power);
                     hardware.motor_rearRight.setPower(-power);
                     sleep((long) controlRotate.getDeltaT());
+                    telemetry.addData("Target:", angle);
+                    telemetry.addData("Current:", getAngle());
+                    telemetry.addData("Power:", power);
+                    telemetry.update();
                 } while (opModeIsActive() && !controlRotate.atTarget(getAngle()) && runtime.seconds() < timeout);
             } else {
                 do {
@@ -155,6 +177,10 @@ public abstract class Automation extends LinearOpMode {
                     hardware.motor_frontRight.setPower(power);
                     hardware.motor_rearRight.setPower(power);
                     sleep((long) controlRotate.getDeltaT());
+                    telemetry.addData("Target:", angle);
+                    telemetry.addData("Current:", getAngle());
+                    telemetry.addData("Power:", power);
+                    telemetry.update();
                 } while (opModeIsActive() && !controlRotate.atTarget(getAngle()) && runtime.seconds() < timeout);
             }
             setDriveMotorSpeed(0);
@@ -175,6 +201,7 @@ public abstract class Automation extends LinearOpMode {
 
         public void start() {
             controlDistance.setLimit(Range.clip(Math.abs(power), 0.0, 1.0));
+            controlDistance.setTolerance(10); 
             hardware.imu.startAccelerationIntegration(hardware.imu.getPosition(), new Velocity(), 5);
             start = hardware.imu.getPosition();
 
@@ -183,7 +210,10 @@ public abstract class Automation extends LinearOpMode {
         }
 
         public boolean atCondition() {
-            return (distance(start, hardware.imu.getPosition()) - targetDistance)/1000 <= tolerance;
+            telemetry.addData("target:", targetDistance);
+            telemetry.addData("currrent:", distance(start, hardware.imu.getPosition()));
+            telemetry.update();
+            return controlDistance.atTarget(distance(start, hardware.imu.getPosition()));
         }
 
         public double correction() {
@@ -332,13 +362,13 @@ public abstract class Automation extends LinearOpMode {
 
             runtime.reset();
             do {
-                double correction = controlDrive.doPID(getAngle());
+                double correction = -controlDrive.doPID(getAngle());
                 hardware.motor_frontLeft.setPower(frontLeft + correction + condition.correction());
                 hardware.motor_frontRight.setPower(frontRight - correction + condition.correction());
                 hardware.motor_rearLeft.setPower(rearLeft + correction + condition.correction());
                 hardware.motor_rearRight.setPower(rearRight - correction + condition.correction());
                 sleep((long) controlDrive.getDeltaT());
-            } while (opModeIsActive() && runtime.seconds() < timeout && condition.atCondition());
+            } while (opModeIsActive() && runtime.seconds() < timeout && !condition.atCondition());
         }
         setDriveMotorSpeed(0.0);
         condition.end();
@@ -346,6 +376,30 @@ public abstract class Automation extends LinearOpMode {
         resetAngle();
         sleep(drive_delay);
     }
+
+
+    void setYeeter(double yeetPower) {
+        hardware.motor_launch.setPower(yeetPower);
+    }
+
+    enum ConveyorState {
+        ON,
+        OFF
+    }
+    void setConveyor(ConveyorState state) {
+        switch (state) {
+            case ON:
+                hardware.motor_conveyor.setPower(conveyor_on);
+                hardware.servo_Advancer.setPower(0.5);
+                break;
+
+            case OFF:
+                hardware.motor_conveyor.setPower(0);
+                hardware.servo_Advancer.setPower(0.05);
+                break;
+        }
+    }
+
 
     enum GatePosition {
         OPEN,
