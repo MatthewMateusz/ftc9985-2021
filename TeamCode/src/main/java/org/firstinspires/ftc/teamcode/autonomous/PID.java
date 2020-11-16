@@ -52,7 +52,7 @@ public class PID {
     }
 
     public double doPID(double input) {
-        double error = input - setpoint;
+        double error = setpoint - input;
         double integral = prevIntegral + error * (deltaT * 0.001);
         double derivative = (error - prevError) / (deltaT * 0.001);
 
@@ -81,7 +81,7 @@ public class PID {
     }
 
     public boolean atTarget(double input) {
-        if (Math.abs((setpoint - input)/setpoint) < tolerance) {
+        if (Math.abs((setpoint - input)) < tolerance) {
             onTargetCount += 1;
         } else {
             onTargetCount = 0;
