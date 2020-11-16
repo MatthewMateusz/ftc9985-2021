@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple.Direction;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 
 public class Hardware {
 
@@ -33,6 +34,9 @@ public class Hardware {
     public DigitalChannel touch_lift_down = null;
     public DigitalChannel touch_lift_up = null;
     public ColorSensor colorSensor_Down = null;
+
+    public WebcamName viewer;
+
     public void init(HardwareMap hwMap) {
         motor_frontLeft = setupMotor(hwMap, "motor_frontLeft", Direction.REVERSE, ZeroPowerBehavior.BRAKE);
         motor_frontRight = setupMotor(hwMap, "motor_frontRight", Direction.FORWARD, ZeroPowerBehavior.BRAKE);
@@ -53,6 +57,7 @@ public class Hardware {
         colorSensor_Down = hwMap.get(ColorSensor.class,"color_Down");
 
         imu = hwMap.get(BNO055IMU.class, "imu");
+        viewer = hwMap.get(WebcamName.class, "The Viewer");
     }
 
     private DcMotor setupMotor(HardwareMap hwMap, String phoneName, DcMotor.Direction motorDirection, DcMotor.ZeroPowerBehavior zeroPower) {
