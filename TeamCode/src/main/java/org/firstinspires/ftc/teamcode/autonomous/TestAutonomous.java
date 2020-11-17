@@ -8,7 +8,21 @@ public class TestAutonomous extends Automation {
     public void instruction() throws InterruptedException {
 
 
+        setYeeter(0.65);
+        sleep(2000);
+        setGate(GatePosition.OPEN);
+        sleep(500);
+        setConveyor(ConveyorState.ON, 0.8);
+        sleep(300);
+        rotate(-5, 1, 2, false);
+        sleep(10);
+        rotate(-5, 1, 2, true);
+        sleep(500);
+        setYeeter(0);
+        sleep(1000);
         driveUntilCondition(new IMUDistance(609.6), 0.5, 0, 10, true);
+
+        //driveUntilCondition(new IMUDistance(609.6), 0.5, 0, 10, true);
 
 
 
