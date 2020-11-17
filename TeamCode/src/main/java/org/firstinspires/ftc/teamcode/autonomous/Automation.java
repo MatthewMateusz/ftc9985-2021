@@ -95,10 +95,12 @@ public abstract class Automation extends LinearOpMode {
     @Override
     public final void runOpMode() throws InterruptedException {
         hardware.init(hardwareMap);
-        initIMU();
 
         initVuforia();
         initTfod();
+
+        initIMU();
+
 
         //specific autonomous init code
         auto_init();
@@ -135,7 +137,7 @@ public abstract class Automation extends LinearOpMode {
 
         hardware.imu.initialize(parameters);
 
-        while (!isStarted() && !isStopRequested() && !hardware.imu.isSystemCalibrated()) {
+        while (!isStarted() && !hardware.imu.isSystemCalibrated()) {
             idle();
         }
     }
@@ -203,10 +205,10 @@ public abstract class Automation extends LinearOpMode {
             if (angle < 0) {
                 do {
                     power = controlRotate.doPID(getAngle());
-                    hardware.motor_frontLeft.setPower(power);
-                    hardware.motor_frontRight.setPower(-power);
-                    hardware.motor_rearLeft.setPower(power);
-                    hardware.motor_rearRight.setPower(-power);
+                    hardware.motor_frontLeft.setPower(-power);
+                    hardware.motor_frontRight.setPower(power);
+                    hardware.motor_rearLeft.setPower(-power);
+                    hardware.motor_rearRight.setPower(power);
                     sleep((long) controlRotate.getDeltaT());
                     telemetry.addData("Target:", angle);
                     telemetry.addData("Current:", getAngle());
@@ -244,9 +246,9 @@ public abstract class Automation extends LinearOpMode {
         }
 
         public void start() {
-            controlDistance.setLimit(Range.clip(Math.abs(power), 0.0, 1.0));
+            controlDistance.setLimit(1);
             controlDistance.setTolerance(10); 
-            hardware.imu.startAccelerationIntegration(hardware.imu.getPosition(), new Velocity(), 5);
+            hardware.imu.startAccelerationIntegration(hardware.imu.getPosition(), new Velocity(), 1);
             start = hardware.imu.getPosition();
 
             controlDistance.setPoint(targetDistance);
@@ -256,6 +258,7 @@ public abstract class Automation extends LinearOpMode {
         public boolean atCondition() {
             telemetry.addData("target:", targetDistance);
             telemetry.addData("currrent:", distance(start, hardware.imu.getPosition()));
+            telemetry.addData("P", hardware.imu.getPosition());
             telemetry.update();
             return controlDistance.atTarget(distance(start, hardware.imu.getPosition()));
         }
@@ -269,9 +272,11 @@ public abstract class Automation extends LinearOpMode {
         }
 
         private double distance(Position start, Position end) {
-            start.toUnit(DistanceUnit.CM);
-            end.toUnit(DistanceUnit.CM);
-            return Math.sqrt(((end.x - start.x) * (end.x - start.x))+((end.y - start.y) * (end.y - start.y))+((end.z - start.z) * (end.z - start.z)));
+            start.toUnit(DistanceUnit.MM);
+            end.toUnit(DistanceUnit.MM);
+            return Math.sqrt(((end.x - start.x) * (end.x - start.x))+
+                             ((end.y - start.y) * (end.y - start.y))/*+
+                             ((end.z - start.z) * (end.z - start.z))*/);
         }
     }
 
@@ -407,10 +412,10 @@ public abstract class Automation extends LinearOpMode {
             runtime.reset();
             do {
                 double correction = -controlDrive.doPID(getAngle());
-                hardware.motor_frontLeft.setPower(frontLeft + correction + condition.correction());
-                hardware.motor_frontRight.setPower(frontRight - correction + condition.correction());
-                hardware.motor_rearLeft.setPower(rearLeft + correction + condition.correction());
-                hardware.motor_rearRight.setPower(rearRight - correction + condition.correction());
+                hardware.motor_frontLeft.setPower(frontLeft * condition.correction() + correction);
+                hardware.motor_frontRight.setPower(frontRight * condition.correction() - correction);
+                hardware.motor_rearLeft.setPower(rearLeft * condition.correction() + correction);
+                hardware.motor_rearRight.setPower(rearRight * condition.correction() - correction);
                 sleep((long) controlDrive.getDeltaT());
             } while (opModeIsActive() && runtime.seconds() < timeout && !condition.atCondition());
         }
@@ -430,11 +435,12 @@ public abstract class Automation extends LinearOpMode {
         ON,
         OFF
     }
-    void setConveyor(ConveyorState state) {
+    void setConveyor(ConveyorState state, double power) {
         switch (state) {
             case ON:
-                hardware.motor_conveyor.setPower(conveyor_on);
-                hardware.servo_Advancer.setPower(0.5);
+                hardware.motor_conveyor.setPower(power);
+                hardware.servo_Advancer.setPower(1);
+
                 break;
 
             case OFF:
