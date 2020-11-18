@@ -75,7 +75,7 @@ public abstract class Automation extends LinearOpMode {
     //Drive straight stuff
     PID controlRotate = new PID(0.025, 0.04, 0); //p 0.2 | 0.00004, 0
     PID controlDrive = new PID(0.05, 0.01, 0);
-    PID controlDistance = new PID(0.1, 0, 0);
+    PID controlDistance = new PID(0.05, 0, 0);
 
     private ElapsedTime runtime = new ElapsedTime();
 
@@ -186,6 +186,34 @@ public abstract class Automation extends LinearOpMode {
         }
     }
 
+    public enum RingState {
+        NONE,
+        ONE,
+        QUAD
+    }
+    RingState detectRingState(double timeout) {
+        if (opModeIsActive()) {
+            tfod.activate();
+            runtime.reset();
+            while (opModeIsActive() && runtime.seconds() < timeout) {
+                List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
+                for (int i = 0; i < updatedRecognitions.size(); i++) {
+                    if (updatedRecognitions.get(i).getLabel().equals(L2E)) {
+                        tfod.deactivate();
+                        return RingState.ONE;
+                    } else if (updatedRecognitions.get(i).getLabel().equals(L2E)) {
+                        tfod.deactivate();
+                        return RingState.QUAD;
+                    }
+                }
+            }
+
+            tfod.deactivate();
+            return RingState.NONE;
+        } else {
+            return null;
+        }
+    }
 
 
     /*
@@ -237,7 +265,6 @@ public abstract class Automation extends LinearOpMode {
 
     /* Custom condition to drive to instead of creating a new function every single time */
     class IMUDistance extends Condition {
-        Position start;
         double targetDistance;
         double tolerance = 0.02;
 
@@ -249,7 +276,6 @@ public abstract class Automation extends LinearOpMode {
             controlDistance.setLimit(1);
             controlDistance.setTolerance(10); 
             hardware.imu.startAccelerationIntegration(hardware.imu.getPosition(), new Velocity(), 1);
-            start = hardware.imu.getPosition();
 
             controlDistance.setPoint(targetDistance);
             controlDistance.setDeltaT(5);
@@ -257,25 +283,24 @@ public abstract class Automation extends LinearOpMode {
 
         public boolean atCondition() {
             telemetry.addData("target:", targetDistance);
-            telemetry.addData("currrent:", distance(start, hardware.imu.getPosition()));
+            telemetry.addData("currrent:", distance(hardware.imu.getPosition()));
             telemetry.addData("P", hardware.imu.getPosition());
             telemetry.update();
-            return controlDistance.atTarget(distance(start, hardware.imu.getPosition()));
+            return controlDistance.atTarget(distance(hardware.imu.getPosition()));
         }
 
         public double correction() {
-            return controlDistance.doPID(distance(start, hardware.imu.getPosition()));
+            return controlDistance.doPID(distance(hardware.imu.getPosition()));
         }
 
         public void end() {
             hardware.imu.stopAccelerationIntegration();
         }
 
-        private double distance(Position start, Position end) {
-            start.toUnit(DistanceUnit.MM);
+        private double distance(Position end) {
             end.toUnit(DistanceUnit.MM);
-            return Math.sqrt(((end.x - start.x) * (end.x - start.x))+
-                             ((end.y - start.y) * (end.y - start.y))/*+
+            return Math.sqrt(((end.x) * (end.x))+
+                             ((end.y) * (end.y))/*+
                              ((end.z - start.z) * (end.z - start.z))*/);
         }
     }
@@ -325,11 +350,35 @@ public abstract class Automation extends LinearOpMode {
         }
 
         public double correction() {
-            return 0;
+            return 1;
         }
 
         public void end() {
 
+        }
+    }
+
+    class TimeDrive extends Condition {
+        private double targetTime;
+
+        public TimeDrive(double seconds) {
+            targetTime = seconds;
+        }
+
+        public void start() {
+            runtime.reset();
+        }
+
+        public boolean atCondition() {
+            return runtime.seconds() > targetTime;
+        }
+
+        public void end(){
+
+        }
+
+        public double correction() {
+            return 1;
         }
     }
 
