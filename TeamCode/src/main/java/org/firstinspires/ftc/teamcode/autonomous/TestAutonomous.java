@@ -22,7 +22,7 @@ public class TestAutonomous extends Automation {
         sleep(1000);*/
 
 
-        driveUntilCondition(new IMUDistance(100), 0.5, 0, 10, true);
+        ObjectFinderTest(30);
 
         //driveUntilCondition(new IMUDistance(609.6), 0.5, 0, 10, true);
 
