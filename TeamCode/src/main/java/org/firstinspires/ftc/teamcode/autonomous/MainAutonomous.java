@@ -50,7 +50,7 @@ public class MainAutonomous extends Automation {
 
     public class VuforiaDetection extends Thread {
         public void run() {
-            ringState = detectRingState(3);
+            ringState = detectRingState(5);
         }
     }
 }
