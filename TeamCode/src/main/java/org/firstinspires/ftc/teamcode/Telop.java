@@ -71,7 +71,7 @@ public class Telop extends OpMode {
         //Collector
         if(gamepad1.a && !change) {
             if(robot.motor_collector.getPower() == 0)
-                robot.motor_collector.setPower(.9);
+                robot.motor_collector.setPower(1);
             else
                 robot.motor_collector.setPower(0);
             change = true;
