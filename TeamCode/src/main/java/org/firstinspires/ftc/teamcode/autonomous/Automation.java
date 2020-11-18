@@ -84,7 +84,7 @@ public abstract class Automation extends LinearOpMode {
     private static final String TFOD_MODEL_ASSET = "UltimateGoal.tflite";
     private static final String L1E = "Quad";
     private static final String L2E = "Single";
-    private static final float min_confidence = 0.8f;
+    private static final float min_confidence = 0.6f;
     VuforiaLocalizer vuforia;
     TFObjectDetector tfod;
 
