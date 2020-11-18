@@ -197,13 +197,15 @@ public abstract class Automation extends LinearOpMode {
             runtime.reset();
             while (opModeIsActive() && runtime.seconds() < timeout) {
                 List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
-                for (int i = 0; i < updatedRecognitions.size(); i++) {
-                    if (updatedRecognitions.get(i).getLabel().equals(L2E)) {
-                        tfod.deactivate();
-                        return RingState.ONE;
-                    } else if (updatedRecognitions.get(i).getLabel().equals(L2E)) {
-                        tfod.deactivate();
-                        return RingState.QUAD;
+                if (updatedRecognitions != null) {
+                    for (int i = 0; i < updatedRecognitions.size(); i++) {
+                        if (updatedRecognitions.get(i).getLabel().equals(L2E)) {
+                            tfod.deactivate();
+                            return RingState.ONE;
+                        } else if (updatedRecognitions.get(i).getLabel().equals(L2E)) {
+                            tfod.deactivate();
+                            return RingState.QUAD;
+                        }
                     }
                 }
             }
