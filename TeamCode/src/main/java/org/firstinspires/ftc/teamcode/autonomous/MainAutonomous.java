@@ -5,7 +5,12 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 @Autonomous(name="Main Autonomous", group="INDEV")
 public class MainAutonomous extends Automation {
 
+    RingState ringState = RingState.NONE;
+
+    VuforiaDetection vuforia = new VuforiaDetection();
+
     public void instruction() throws InterruptedException {
+        vuforia.run();
         setYeeter(0.65);
         sleep(2000);
         setGate(GatePosition.OPEN);
@@ -17,26 +22,35 @@ public class MainAutonomous extends Automation {
         rotate(-5, 1, 2, true);
         sleep(500);
         setYeeter(0);
-
         setConveyor(ConveyorState.OFF, 0.05);
         setGate(GatePosition.CLOSE);
         rotate(10, 1, 2, true);
-        /*driveUntilCondition(new LineDrive(LineColor.WHITE), 1, -41.5, 10, true);
-        driveUntilCondition(new TimeDrive(1), 0.75, -180, 3, true);
-        driveUntilCondition(new LineDrive(LineColor.WHITE), 1, 60, 5, true);*/
+        vuforia.join();
 
-        /*driveUntilCondition(new LineDrive(LineColor.WHITE), 1, -22, 5, false);
-        driveUntilCondition(new TimeDrive(1), 1, -22, 5, true);
-        driveUntilCondition(new TimeDrive(1), 1, -180, 5, true);*/
+        switch (ringState) {
+            case NONE:
+                driveUntilCondition(new LineDrive(LineColor.WHITE), 1, -41.5, 10, true);
+                driveUntilCondition(new TimeDrive(1), 0.75, -180, 3, true);
+                driveUntilCondition(new LineDrive(LineColor.WHITE), 1, 60, 5, true);
+                break;
 
-        driveUntilCondition(new LineDrive(LineColor.WHITE), 1, -30, 10, false);
-        driveUntilCondition(new TimeDrive(4), 1, -50, 10, true);
-        driveUntilCondition(new TimeDrive(4), 1, -180, 10, true);
+            case ONE:
+                driveUntilCondition(new LineDrive(LineColor.WHITE), 1, -22, 5, false);
+                driveUntilCondition(new TimeDrive(1), 1, -22, 5, true);
+                driveUntilCondition(new TimeDrive(1), 1, -180, 5, true);
+                break;
+
+            case QUAD:
+                driveUntilCondition(new LineDrive(LineColor.WHITE), 1, -30, 10, false);
+                driveUntilCondition(new TimeDrive(4), 1, -50, 10, true);
+                driveUntilCondition(new TimeDrive(4), 1, -180, 10, true);
+                break;
+        }
     }
 
-    public class VuforiaDetection implements Runnable {
+    public class VuforiaDetection extends Thread {
         public void run() {
-
+            ringState = detectRingState(5);
         }
     }
 }
