@@ -10,13 +10,13 @@ public class MainAutonomous extends Automation {
     VuforiaDetection vuforia = new VuforiaDetection();
 
     public void instruction() throws InterruptedException {
-        vuforia.run();
+        vuforia.start();
         setYeeter(0.65);
         sleep(2000);
         setGate(GatePosition.OPEN);
         sleep(500);
         setConveyor(ConveyorState.ON, 0.8);
-        sleep(100);
+        sleep(200);
         rotate(-5, 1, 2, false);
         sleep(10);
         rotate(-5, 1, 2, true);
@@ -50,7 +50,7 @@ public class MainAutonomous extends Automation {
 
     public class VuforiaDetection extends Thread {
         public void run() {
-            ringState = detectRingState(5);
+            ringState = detectRingState(4);
         }
     }
 }
