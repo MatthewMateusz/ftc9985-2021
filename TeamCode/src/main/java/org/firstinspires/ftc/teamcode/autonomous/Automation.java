@@ -201,13 +201,19 @@ public abstract class Automation extends LinearOpMode {
                     for (int i = 0; i < updatedRecognitions.size(); i++) {
                         if (updatedRecognitions.get(i).getLabel().equals(L2E)) {
                             tfod.deactivate();
+                            telemetry.addData("O", "1");
+                            telemetry.update();
                             return RingState.ONE;
                         } else if (updatedRecognitions.get(i).getLabel().equals(L2E)) {
+                            telemetry.addData("O", "4");
+                            telemetry.update();
                             tfod.deactivate();
                             return RingState.QUAD;
                         }
                     }
                 }
+                telemetry.addData("O", "0");
+                telemetry.update();
             }
 
             tfod.deactivate();
