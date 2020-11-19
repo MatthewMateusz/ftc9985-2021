@@ -4,19 +4,18 @@ import android.graphics.Color;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.util.Range;
-
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-
-import java.util.Locale;
 
 @TeleOp(name="Pushbot: Teleop Tank", group="Pushbot")
 //@Disabled
 public class Telop extends OpMode {
     /* Declare OpMode members. */
     Hardware robot = new Hardware(); // use the class created to define a Pushbot's hardware
-    boolean changed = false; //Luancher
-    boolean change = false; //motor collector
+    boolean LauncherChange = false; //Luancher
+    boolean LauncherChangeSlow = false;
+    boolean MotorChange = false; //motor collector
+    boolean LaunchChange = false;
+    boolean GateChange = false;
+    boolean ConveyorChange = false;
 
 
     //final double    servoSpeedH   = 0.004;
@@ -62,42 +61,37 @@ public class Telop extends OpMode {
         double rightRearSpeed;
 
 //add this vairable.  "CC" stands for controller coefficient and is used with mecanum wheels so the x and y sticks don't add up to more than 1 for a pair of motors (this would be bad since the motor value is limited to 1.  The motors moving in the opposing direction would not be limited
-        double CC = .6;
+        double CC = .7;
 
         //if (gamepad1.a)
           //  robot.motor_collector.setPower(.7);
         //else if (gamepad1.y)
           //  robot.motor_collector.setPower(0);
         //Collector
-        if(gamepad1.a && !change) {
-            if(robot.motor_collector.getPower() == 0)
+        if(gamepad1.a && !MotorChange) {
+            if(robot.motor_collector.getPower() == 0) {
                 robot.motor_collector.setPower(1);
-            else
+                robot.motor_conveyor.setPower(1);
+                robot.servo_Advancer.setPower(0.5);
+            }else {
                 robot.motor_collector.setPower(0);
-            change = true;
-        } else if(!gamepad1.a) change = false;
-
-        if (Math.abs(robot.motor_collector.getPower()) > 0)
-            robot.motor_conveyor.setPower(1);
-        else
-            robot.motor_conveyor.setPower(0);
-
-        if (!(Math.abs(robot.motor_collector.getPower()) > 0))
-            robot.servo_Advancer.setPower(0);
-        else
-            robot.servo_Advancer.setPower(.5);
+                robot.motor_conveyor.setPower(1);
+                robot.servo_Advancer.setPower(0.05);
+            }
+            MotorChange = true;
+        } else if(!gamepad1.a) MotorChange = false;
 
 
 
 
-
-        if(gamepad2.a && !change) {
-            if(robot.servo_gate.getPosition() == 1)
+        if(gamepad2.a && !GateChange) {
+            if(robot.servo_gate.getPosition() == 1) {
                 robot.servo_gate.setPosition(.5);
-            else
+            } else {
                 robot.servo_gate.setPosition(1);
-            change = true;
-        } else if(!gamepad2.a) change = false;
+            }
+            GateChange = true;
+        } else if(!gamepad2.a) GateChange = false;
 
         if (gamepad2.b)
             robot.servo_grabber.setPosition(1);
@@ -105,23 +99,23 @@ public class Telop extends OpMode {
             robot.servo_grabber.setPosition(0);
 
 
-        if(gamepad1.right_bumper && !changed) {
+        if(gamepad1.right_bumper && !LauncherChange) {
             if(robot.motor_launch.getPower() == 0)
                 robot.motor_launch.setPower(1);
 
             else
                 robot.motor_launch.setPower(0);
-            changed = true;
-        } else if(!gamepad1.right_bumper) changed = false;
+            LauncherChange = true;
+        } else if(!gamepad1.right_bumper) LauncherChange = false;
 
-        if(gamepad1.left_bumper && !changed) {
+        if(gamepad1.left_bumper && !LauncherChangeSlow) {
             if(robot.motor_launch.getPower() == 0)
                 robot.motor_launch.setPower(.60);
 
             else
                 robot.motor_launch.setPower(0);
-            changed = true;
-        } else if(!gamepad1.left_bumper) changed = false;
+            LauncherChangeSlow = true;
+        } else if(!gamepad1.left_bumper) LauncherChangeSlow = false;
 
 
         if (gamepad2.dpad_up && !robot.pressed(robot.touch_lift_up))
@@ -129,12 +123,13 @@ public class Telop extends OpMode {
         else if (gamepad2.dpad_down && !robot.pressed(robot.touch_lift_down))
             robot.motor_lift.setPower(-.6);
 
+
         // Run wheels in tank mode (note: The joystick goes negative when pushed forwards, so negate it)
 
 //This code is for mecanum wheels mounted out the front and rear of robot (team 9985)
-        leftFrontSpeed = (gamepad1.left_stick_y*(CC) - gamepad1.left_stick_x*(CC) + gamepad1.left_trigger*(CC) - gamepad1.right_trigger*(CC));
+        leftFrontSpeed = (-gamepad1.left_stick_y*(CC) + gamepad1.left_stick_x*(CC) - gamepad1.left_trigger*(CC) + gamepad1.right_trigger*(CC));
         rightFrontSpeed = (-gamepad1.left_stick_y*(CC) - gamepad1.left_stick_x*(CC) + gamepad1.left_trigger*(CC) - gamepad1.right_trigger*(CC));
-        leftRearSpeed = (gamepad1.left_stick_y*(CC) + gamepad1.left_stick_x*(CC) + gamepad1.left_trigger*(CC) - gamepad1.right_trigger*(CC));
+        leftRearSpeed = (-gamepad1.left_stick_y*(CC) - gamepad1.left_stick_x*(CC) - gamepad1.left_trigger*(CC) + gamepad1.right_trigger*(CC));
         rightRearSpeed = (-gamepad1.left_stick_y*(CC) + gamepad1.left_stick_x*(CC) + gamepad1.left_trigger*(CC) - gamepad1.right_trigger*(CC));
 
 
