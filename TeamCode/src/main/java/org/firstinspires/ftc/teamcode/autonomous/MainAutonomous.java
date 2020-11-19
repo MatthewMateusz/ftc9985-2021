@@ -41,16 +41,18 @@ public class MainAutonomous extends Automation {
                 break;
 
             case QUAD:
-                driveUntilCondition(new LineDrive(LineColor.WHITE), 1, -30, 10, false);
-                driveUntilCondition(new TimeDrive(4), 1, -50, 10, true);
-                driveUntilCondition(new TimeDrive(4), 1, -180, 10, true);
+                driveUntilCondition(new LineDrive(LineColor.WHITE), 0.75, -20, 5, false);
+                driveUntilCondition(new TimeDrive(4), 1, -50, 5, false);
+                driveUntilCondition(new TimeDrive(0.5), 0.5, 0, 2.5, true);
+                driveUntilCondition(new TimeDrive(0.5), 0.25, -90, 2.5, true);
+                driveUntilCondition(new LineDrive(LineColor.WHITE), 0.75, -180, 2.5, true);
                 break;
         }
     }
 
     public class VuforiaDetection extends Thread {
         public void run() {
-            ringState = detectRingState(5);
+            ringState = detectRingState(3);
         }
     }
 }
