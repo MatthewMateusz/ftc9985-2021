@@ -553,6 +553,23 @@ public abstract class Automation extends LinearOpMode {
         }
     }
 
+    public enum WobbleGrabber {
+        OPEN,
+        CLOSE
+    }
+    void setWobbleGrabber(WobbleGrabber state) {
+        switch (state) {
+            case OPEN:
+                hardware.servo_grabber.setPosition(0);
+                break;
+
+            case CLOSE:
+                hardware.servo_grabber.setPosition(1);
+                break;
+        }
+    }
+
+
 }
 
 
