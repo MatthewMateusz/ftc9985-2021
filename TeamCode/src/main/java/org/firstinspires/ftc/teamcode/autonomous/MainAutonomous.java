@@ -11,6 +11,7 @@ public class MainAutonomous extends Automation {
 
     public void instruction() throws InterruptedException {
         vuforia.start();
+        setWobbleGrabber(WobbleGrabber.CLOSE);
         setYeeter(0.65);
         sleep(2000);
         setGate(GatePosition.OPEN);
@@ -31,12 +32,16 @@ public class MainAutonomous extends Automation {
             case NONE:
                 driveUntilCondition(new LineDrive(LineColor.WHITE), 1, -41.5, 10, true);
                 driveUntilCondition(new TimeDrive(1), 0.75, -180, 3, true);
+                setWobbleGrabber(WobbleGrabber.OPEN);
+                driveUntilCondition(new TimeDrive(0.1), 0.75, -180, 3, true);
                 driveUntilCondition(new LineDrive(LineColor.WHITE), 1, 60, 5, true);
                 break;
 
             case ONE:
                 driveUntilCondition(new LineDrive(LineColor.WHITE), 1, -22, 5, false);
                 driveUntilCondition(new TimeDrive(1), 1, -22, 5, true);
+                setWobbleGrabber(WobbleGrabber.OPEN);
+                driveUntilCondition(new TimeDrive(0.1), 0.75, -180, 3, true);
                 driveUntilCondition(new TimeDrive(1), 1, -180, 5, true);
                 break;
 
@@ -45,6 +50,8 @@ public class MainAutonomous extends Automation {
                 driveUntilCondition(new TimeDrive(4), 1, -50, 5, false);
                 driveUntilCondition(new TimeDrive(0.5), 0.5, 0, 2.5, true);
                 driveUntilCondition(new TimeDrive(0.5), 0.25, -90, 2.5, true);
+                setWobbleGrabber(WobbleGrabber.OPEN);
+                driveUntilCondition(new TimeDrive(0.1), 0.75, -180, 3, true);
                 driveUntilCondition(new LineDrive(LineColor.WHITE), 0.75, -180, 2.5, true);
                 break;
         }

@@ -48,7 +48,7 @@ public class Hardware {
         motor_conveyor = setupMotor(hwMap, "motor_Conveyor", Direction.REVERSE, ZeroPowerBehavior.BRAKE);
 
         servo_Advancer = setupContinuousServo(hwMap, "servo_Advancer", 0);
-        grabber_elbow = setupServo(hwMap,"servo_grabberElbow",.5);
+        grabber_elbow = setupServo(hwMap,"servo_grabberElbow",1);
         servo_gate= setupServo(hwMap,"servo_Gate",1);
         servo_grabber = setupServo(hwMap,"servo_Grabber",.5);
 
