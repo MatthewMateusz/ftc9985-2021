@@ -81,7 +81,31 @@ public class Telop extends OpMode {
             MotorChange = true;
         } else if(!gamepad1.a) MotorChange = false;
 
+        if(gamepad1.b && !MotorChange) {
+            if(robot.motor_collector.getPower() == 0) {
+                robot.motor_collector.setPower(-1);
+                robot.motor_conveyor.setPower(-1);
+                robot.servo_Advancer.setPower(-0.5);
+            }else {
+                robot.motor_collector.setPower(0);
+                robot.motor_conveyor.setPower(-1);
+                robot.servo_Advancer.setPower(-0.05);
+            }
+            MotorChange = true;
+        } else if(!gamepad1.b) MotorChange = false;
 
+        if(gamepad1.y && !MotorChange) {
+            if(robot.motor_collector.getPower() == 0) {
+                robot.motor_collector.setPower(0);
+                robot.motor_conveyor.setPower(0);
+                robot.servo_Advancer.setPower(-0);
+            }else {
+                robot.motor_collector.setPower(0);
+                robot.motor_conveyor.setPower(0);
+                robot.servo_Advancer.setPower(0);
+            }
+            MotorChange = true;
+        } else if(!gamepad1.y) MotorChange = false;
 
 
         if(gamepad2.a && !GateChange) {
