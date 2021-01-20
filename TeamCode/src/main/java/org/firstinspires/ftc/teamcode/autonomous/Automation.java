@@ -390,6 +390,26 @@ public abstract class Automation extends LinearOpMode {
         }
     }
 
+    class EncoderDrive extends Condition {
+        private double targetDistance;
+
+        public EncoderDrive(double distance) {targetDistance = distance;}
+
+        public void start() {
+            hardware.motor_frontLeft.setMode(RunMode.STOP_AND_RESET_ENCODER);
+            hardware.motor_frontLeft.setMode(RunMode.RUN_USING_ENCODER);
+        }
+
+        public boolean atCondition() {return true;}
+
+        public void end() {
+            hardware.motor_frontLeft.setMode(RunMode.STOP_AND_RESET_ENCODER);
+            hardware.motor_frontLeft.setMode(RunMode.RUN_WITHOUT_ENCODER);
+        }
+
+        public double correction() { return 1;}
+    }
+
 
 
     /*
