@@ -134,7 +134,7 @@ public class Telop extends OpMode {
 
         if(gamepad1.left_bumper && !LauncherChangeSlow) {
             if(robot.motor_launch.getPower() == 0)
-                robot.motor_launch.setPower(.60);
+                robot.motor_launch.setPower(.80);
 
             else
                 robot.motor_launch.setPower(0);
