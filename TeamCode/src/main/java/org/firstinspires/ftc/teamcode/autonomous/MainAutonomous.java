@@ -12,7 +12,7 @@ public class MainAutonomous extends Automation {
     public void instruction() throws InterruptedException {
         vuforia.start();
         setWobbleGrabber(WobbleGrabber.CLOSE);
-        setYeeter(0.65);
+        setYeeter(0.62);
         sleep(2000);
         setGate(GatePosition.OPEN);
         sleep(500);

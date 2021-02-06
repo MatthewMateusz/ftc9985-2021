@@ -50,7 +50,7 @@ public class Hardware {
         servo_Advancer = setupContinuousServo(hwMap, "servo_Advancer", 0);
         grabber_elbow = setupServo(hwMap,"servo_grabberElbow",1);
         servo_gate= setupServo(hwMap,"servo_Gate",1);
-        servo_grabber = setupServo(hwMap,"servo_Grabber",.5);
+        servo_grabber = setupServo(hwMap,"servo_Grabber",1);
 
         touch_lift_down = hwMap.get(DigitalChannel.class, "touch_lift_down");
         touch_lift_up = hwMap.get(DigitalChannel.class, "touch_lift_up");
