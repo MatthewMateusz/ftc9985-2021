@@ -105,9 +105,10 @@ public abstract class Automation extends LinearOpMode {
         //specific autonomous init code
         auto_init();
 
-        telemetry.addData("Autonomous mode initialized", "Waiting for user start");
-        telemetry.update();
+
         while(!isStarted() && !isStopRequested()) {
+            telemetry.addData("Autonomous mode initialized", "Waiting for user start");
+            telemetry.update();
             idle();
         }
 
