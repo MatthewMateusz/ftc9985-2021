@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode.autonomous;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
-@Autonomous(name="Main Autonomous", group="INDEV")
+@Autonomous(name="We Tried Autonomous", group="INDEV")
 public class BetterMainAutonomous extends Automation {
 
     RingState ringState = RingState.NONE;
@@ -17,7 +17,7 @@ public class BetterMainAutonomous extends Automation {
     public void instruction() throws InterruptedException {
         setWobbleGrabber(WobbleGrabber.CLOSE);
 
-        setYeeter(0.62);
+        /*setYeeter(0.62);
         sleep(2000);
         setGate(GatePosition.OPEN);
         sleep(500);
@@ -27,9 +27,9 @@ public class BetterMainAutonomous extends Automation {
         sleep(10);
         rotate(-5, 1, 2, true);
         sleep(500);
-        setYeeter(0);
+        setYeeter(0);*/
 
-        driveUntilCondition(new LineDrive(LineColor.WHITE), 1, 0, 10, true);
+        driveUntilCondition(new LineDrive(LineColor.WHITE), 0.8, 0, 10, true);
         setYeeter(0.8);
         sleep(2000);
 
